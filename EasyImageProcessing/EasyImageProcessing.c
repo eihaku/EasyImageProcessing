@@ -47,7 +47,7 @@ unsigned char image_hist[HIST_Y_SIZE][HIST_X_SIZE];
 long	hist[LEVEL];
 float	ratio[Y_SIZE], size[X_SIZE];
 #define STDOUT stdout
-#define L_BASE 100           // 暫定値
+#define L_BASE 100           // 暫定値/* 连接组件标签的基值 */
 #define PI 3.14159265
 #define ROOT2 1.41421356
 #define BUFF_MAX 2500
@@ -239,7 +239,7 @@ void main()
 		case 7:
 			labeling(image_in, image_work, &cnt);
 			features(image_work, image_out, cnt, size, ratio);
-			display(*image_out, X_SIZE, Y_SIZE, X_WORK_POS, Y_WORK_POS);
+			//display(*image_out, X_SIZE, Y_SIZE, X_WORK_POS, Y_WORK_POS);
 			image_copy(*image_work, *image_in);
 			for (;;) {
 				printf("1 : 円形度により物体を抽出　　\n");
@@ -663,7 +663,11 @@ int cconc(int inb[]) {
 				icn++;
 	return(icn);
 }
-
+/**--- 标签 --- 给图像添加标签 ------------------------------------ -
+	image_in：输入图像数组（二值图像）
+	image_label：输出图像数组（标签图像）
+	cnt：标签数量
+-------------------------------------------------- ---------------------------*/
 void labeling(unsigned char* image_in, unsigned char* image_label, int* cnt) {
 	int i, j, label;
 	for (i = 0; i < Y_SIZE; i++)
@@ -683,7 +687,11 @@ void labeling(unsigned char* image_in, unsigned char* image_label, int* cnt) {
 	*cnt = label - L_BASE;
 	printf(" no. of labels : %d \n", *cnt);
 }
-
+/*--- labelset --- 連結している画素すべてにラベル付けする ---------------------
+	image:    画像配列
+	xs, ys:    スタート位置
+	label:    ラベル番号
+-----------------------------------------------------------------------------*/
 int labelset(unsigned char* image, int xs, int ys, int label) {
 	int i, j, cnt;
 
@@ -701,7 +709,7 @@ int labelset(unsigned char* image, int xs, int ys, int label) {
 						image[i * Y_SIZE + j + 1] = label;
 						cnt++;
 					}
-					if (image[(i-1) * Y_SIZE + j] == HIGH) {
+					if (image[(i - 1) * Y_SIZE + j] == HIGH) {
 						image[(i - 1) * Y_SIZE + j] = label;
 						cnt++;
 					}
@@ -726,10 +734,10 @@ int labelset(unsigned char* image, int xs, int ys, int label) {
 						cnt++;
 					}
 				}
-				if (cnt == 0) {
-					return(0);
-				}
 			}
+		}
+		if (cnt == 0) {
+			return(0);
 		}
 	}
 }
@@ -746,18 +754,18 @@ void features(unsigned char* image_label_in, unsigned char* image_label_out, int
 	for (i = 0; i < cnt; i++) {
 		size[i] = calc_size(image_label_out, (i + L_BASE), &center_x, &center_y);
 		l = calc_length(image_label_out, i + L_BASE);
-		ratio[i] = 4 * PI * size[i] / (1 * 1);
+		ratio[i] = 4 * PI * size[i] / (l * 1);
 		image_label_out[center_y * Y_SIZE + center_x] = HIGH;
 		printf("%d   %f   %f   %f   (%d,%d\n", i, size[i], 1, ratio, center_x, center_y);
 	}
 }
-int calc_size(unsigned char* image_label[], int label, int* cx, int* cy) {
+int calc_size(unsigned char* image_label, int label, int* cx, int* cy) {
 	int i, j;
 	float tx, ty, total;
 	tx = 0; ty = 0; total = 0;
 	for (i = 0; i < Y_SIZE; i++) {
 		for (j = 0; j < X_SIZE; j++) {
-			if (image_label[i][j] == label) {
+			if (image_label[i*Y_SIZE+j] == label) {
 				tx += j; ty += i; total++;
 			}
 			if (total == 0.0)return(0.0);
@@ -766,74 +774,74 @@ int calc_size(unsigned char* image_label[], int label, int* cx, int* cy) {
 		}
 	}
 }
-int calc_length(unsigned char* image_label[], int label) {
+int calc_length(unsigned char* image_label, int label) {
 	int i, j;
 
 	for (i = 0; i < Y_SIZE; i++) {
 		for (j = 0; j < X_SIZE; j++) {
-			if (image_label[i][j] == label) {
+			if (image_label[i*Y_SIZE+j] == label) {
 				return(trace(image_label, j - 1, i));
 			}
 		}
 	}
 }
 
-int trace(unsigned char* image_label[], int  xs, int ys) {
+int trace(unsigned char* image_label, int  xs, int ys) {
 	int x, y, no, vec;
 	float l;
-	l = 0; x = xs; y = ys; no = image_label[y][x + 1]; vec = 5;
+	l = 0; x = xs; y = ys; no = image_label[y*Y_SIZE+x + 1]; vec = 5;
 
 	for (;;) {
 		if (x == xs && y == ys && l != 0) {
 			return(1);
 		}
-		image_label[y][x] = HIGH;
+		image_label[y*Y_SIZE+x] = HIGH;
 		switch (vec)
 		{
 		case 3:
-			if (image_label[y][x + 1] != no && image_label[y - 1][x + 1] == no)
+			if (image_label[y*Y_SIZE+x + 1] != no && image_label[(y - 1)*Y_SIZE+x + 1] == no)
 			{
 				x = x + 1; y = y; l++;
 				vec = 0; continue;
 			}
 		case 4:
-			if (image_label[y - 1][x + 1] != no && image_label[y - 1][x] == no)
+			if (image_label[(y - 1) * Y_SIZE + x + 1] != no && image_label[(y - 1) * Y_SIZE + x] == no)
 			{
 				x = x + 1; y = y - 1; l++;
 				vec = 1; continue;
 			}
 		case 5:
-			if (image_label[y - 1][x] != no && image_label[y - 1][x - 1] == no)
+			if (image_label[(y - 1) * Y_SIZE + x] != no && image_label[(y - 1) * Y_SIZE + x - 1] == no)
 			{
 				x = x; y = y - 1; l++;
 				vec = 2; continue;
 			}
 		case 6:
-			if (image_label[y - 1][x - 1] != no && image_label[y][x - 1] == no)
+			if (image_label[(y - 1) * Y_SIZE + x - 1] != no && image_label[y * Y_SIZE + x - 1] == no)
 			{
 				x = x - 1; y = y - 1; l++;
 				vec = 3; continue;
 			}
 		case 7:
-			if (image_label[y][x - 1] != no && image_label[y + 1][x - 1] == no)
+			if (image_label[y * Y_SIZE + x - 1] != no && image_label[(y + 1) * Y_SIZE + x - 1] == no)
 			{
 				x = x - 1; y = y; l++;
 				vec = 4; continue;
 			}
 		case 0:
-			if (image_label[y + 1][x] != no && image_label[y + 1][x] == no)
+			if (image_label[(y + 1) * Y_SIZE + x] != no && image_label[(y + 1) * Y_SIZE + x] == no)
 			{
 				x = x - 1; y = y + 1; l++;
 				vec = 5; continue;
 			}
 		case 1:
-			if (image_label[y + 1][x + 1] != no && image_label[y + 1][x] == no)
+			if (image_label[(y + 1) * Y_SIZE + x + 1] != no && image_label[(y + 1) * Y_SIZE + x] == no)
 			{
 				x = x; y = y + 1; l++;
 				vec = 6; continue;
 			}
 		case 2:
-			if (image_label[y + 1][x + 1] != no && image_label[y][x + 1] == no)
+			if (image_label[(y + 1) * Y_SIZE + x + 1] != no && image_label[y * Y_SIZE + x + 1] == no)
 			{
 				x = x + 1; y = y + 1; l++;
 				vec = 7; continue;
@@ -842,7 +850,7 @@ int trace(unsigned char* image_label[], int  xs, int ys) {
 		}
 	}
 }
-void ratio_extract(unsigned char* image_label_in[], unsigned char* image_label_out[], int cnt, float ratio[], float ratio_min, float ratio_max) {
+void ratio_extract(unsigned char* image_label_in, unsigned char* image_label_out, int cnt, float ratio[], float ratio_min, float ratio_max) {
 	int i, j, x, y;
 	int lno[LEVEL];
 
@@ -852,14 +860,14 @@ void ratio_extract(unsigned char* image_label_in[], unsigned char* image_label_o
 		}
 	for (y = 0; y < Y_SIZE; y++)
 		for (x = 0; x < X_SIZE; x++) {
-			image_label_out[y][x] = 0;
+			image_label_out[y * Y_SIZE + x] = 0;
 			for (i = 0; i < j; i++) {
-				if (image_label_in[y][x] == lno[i])
-					image_label_out[y][x] = image_label_in[y][x];
+				if (image_label_in[y * Y_SIZE + x] == lno[i])
+					image_label_out[y * Y_SIZE + x] = image_label_in[y * Y_SIZE + x];
 			}
 		}
 }
-void size_extract(unsigned char* image_label_in[], unsigned char* image_label_out[], int cnt, float size[], float size_min, float size_max) {
+void size_extract(unsigned char* image_label_in, unsigned char* image_label_out, int cnt, float size[], float size_min, float size_max) {
 	int i, j, x, y;
 	int lno[LEVEL];
 
@@ -869,10 +877,10 @@ void size_extract(unsigned char* image_label_in[], unsigned char* image_label_ou
 		}
 		for (y = 0; y < Y_SIZE; y++) {
 			for (x = 0; x < X_SIZE; x++) {
-				image_label_out[y][x] = 0;
+				image_label_out[y * Y_SIZE + x] = 0;
 				for (i = 0; i < j; i++) {
-					if (image_label_in[y][x] == lno[i])
-						image_label_out[y][x] = image_label_in[y][x];
+					if (image_label_in[y * Y_SIZE + x] == lno[i])
+						image_label_out[y * Y_SIZE + x] = image_label_in[y * Y_SIZE + x];
 				}
 			}
 		}
