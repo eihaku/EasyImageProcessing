@@ -19,12 +19,14 @@ void histgram(unsigned char *image_in, long hist[]);
 float histimage(long hist[], unsigned char *image_hist);
 void histsmooth(long hist_in[], long hist_out[]);
 void threshold(unsigned char *image_in, unsigned char *image_out, int thresh, int mode);
-void contraction(unsigned char* image_in[], unsigned char* image_out[]);
-void expansion(unsigned char* image_in[], unsigned char* image_out[]);
-void thinning(unsigned char* image_in[], unsigned char* image_out[]);
+void contraction(unsigned char* image_in, unsigned char* image_out);
+void expansion(unsigned char* image_in, unsigned char* image_out);
+void thinning(unsigned char* image_in, unsigned char* image_out);
+
 int cconc(int inb[]);
-void labeling(unsigned char* image_in[], unsigned char* image_label[], int* cnt);
-int labelset(unsigned char* image[], int xs, int ys, int label);
+void labeling(unsigned char* image_in, unsigned char* image_label, int* cnt);
+int labelset(unsigned char* image, int xs, int ys, int label);
+
 void features(unsigned char* image_work[], unsigned char* image_out[], int cnt, float size[], float ratio[]);
 void ratio_extract(unsigned char* image_in[], unsigned char* image_out[], int cnt, float ratio[], float ratio_min, float ratio_max);
 void size_extract(unsigned char* image_in[], unsigned char* image_out[], int cnt, float size[], float size_min, float size_max);

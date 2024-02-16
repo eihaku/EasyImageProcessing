@@ -197,7 +197,7 @@ void main()
 		case 2:
 			printf("出力ファイル名　＊＊＊");
 			scanf("%s", destin);
-			image_write(*image_in, pBmpInfoHeader->biWidth, pBmpInfoHeader->biHeight, "destin.bmp");
+			image_write(*image_out, pBmpInfoHeader->biWidth, pBmpInfoHeader->biHeight, destin);
 			//image_write(*image_out, X_SIZE, Y_SIZE, destin);
 			printf("===============================================================\n\n");
 			break;
@@ -225,7 +225,7 @@ void main()
 			break;
 		case 5:
 			printf("1 : 収縮    2 :  膨張  *** ");
-			scanf(" % d", &i);
+			scanf("%d", &i);
 
 			if (i == 1) contraction(image_in, image_out);
 			if (i == 2) expansion(image_in, image_out);
@@ -234,7 +234,6 @@ void main()
 			break;
 		case 6:
 			thinning(image_in, image_out);
-			display(*image_out, X_SIZE, Y_SIZE, X_OUT_POS, Y_OUT_POS);
 			printf("\n\n");
 			break;
 		case 7:
@@ -371,7 +370,7 @@ void main()
 		default: printf("入力ェラー   ");
 			break;
 		}
-		text_clear();
+
 	}
 	end_set();
 }
@@ -542,69 +541,70 @@ void threshold(unsigned char* image_in, unsigned char* image_out, int thresh, in
 }
 
 
-void contraction(unsigned char* image_in[], unsigned char* image_out[]) {
+void contraction(unsigned char* image_in, unsigned char* image_out) {
 	int i, j;
 	for (i = 1; i < Y_SIZE - 1; i++) {
 		for (j = 1; j < X_SIZE - 1; j++) {
-			image_out[i][j] = image_in[i][j];
-			if (image_in[i - 1][j - 1] == LOW) image_out[i][j] = LOW;
-			if (image_in[i - 1][j] == LOW) image_out[i][j] = LOW;
-			if (image_in[i - 1][j + 1] == LOW) image_out[i][j] = LOW;
-			if (image_in[i][j - 1] == LOW) image_out[i][j] = LOW;
-			if (image_in[i][j + 1] == LOW) image_out[i][j] = LOW;
-			if (image_in[i + 1][j - 1] == LOW) image_out[i][j] = LOW;
-			if (image_in[i + 1][j] == LOW) image_out[i][j] = LOW;
-			if (image_in[i + 1][j + 1] == LOW) image_out[i][j] = LOW;
+			image_out[i * Y_SIZE + j] = image_in[i * Y_SIZE + j];
+			if (image_in[(i - 1) * Y_SIZE + (j - 1)] == LOW) image_out[i * Y_SIZE + j] = LOW;
+			if (image_in[(i - 1) * Y_SIZE + j] == LOW) image_out[i * Y_SIZE + j] = LOW;
+			if (image_in[(i - 1) * Y_SIZE + (j + 1)] == LOW) image_out[i * Y_SIZE + j] = LOW;
+			if (image_in[i * Y_SIZE + (j - 1)] == LOW) image_out[i * Y_SIZE + j] = LOW;
+			if (image_in[i * Y_SIZE + (j + 1)] == LOW) image_out[i * Y_SIZE + j] = LOW;
+			if (image_in[(i + 1) * Y_SIZE + (j - 1)] == LOW) image_out[i * Y_SIZE + j] = LOW;
+			if (image_in[(i + 1) * Y_SIZE + j] == LOW) image_out[i * Y_SIZE + j] = LOW;
+			if (image_in[(i + 1) * Y_SIZE + (j + 1)] == LOW) image_out[i * Y_SIZE + j] = LOW;
 		}
 	}
 }
 
-void expansion(unsigned char* image_in[], unsigned char* image_out[]) {
+void expansion(unsigned char* image_in, unsigned char* image_out) {
 	int i, j;
 
 	for (i = 1; i < Y_SIZE - 1; i++) {
 		for (j = 1; j < X_SIZE - 1; j++) {
-			image_out[i][j] = image_in[i][j];
-			if (image_in[i - 1][j - 1] == HIGH) image_out[i][j] = HIGH;
-			if (image_in[i - 1][j] == HIGH) image_out[i][j] = HIGH;
-			if (image_in[i - 1][j + 1] == HIGH) image_out[i][j] = HIGH;
-			if (image_in[i][j - 1] == HIGH) image_out[i][j] = HIGH;
-			if (image_in[i][j + 1] == HIGH) image_out[i][j] = HIGH;
-			if (image_in[i + 1][j - 1] == HIGH) image_out[i][j] = HIGH;
-			if (image_in[i + 1][j] == HIGH) image_out[i][j] = HIGH;
-			if (image_in[i + 1][j + 1] == HIGH) image_out[i][j] = HIGH;
+			image_out[i * Y_SIZE + j] = image_in[i * Y_SIZE + j];
+			if (image_in[(i - 1) * Y_SIZE + (j - 1)] == HIGH) image_out[i * Y_SIZE + j] = HIGH;
+			if (image_in[(i - 1) * Y_SIZE + j] == HIGH) image_out[i * Y_SIZE + j] = HIGH;
+			if (image_in[(i - 1) * Y_SIZE + (j + 1)] == HIGH) image_out[i * Y_SIZE + j] = HIGH;
+			if (image_in[i * Y_SIZE + (j - 1)] == HIGH) image_out[i * Y_SIZE + j] = HIGH;
+			if (image_in[i * Y_SIZE + (j + 1)] == HIGH) image_out[i * Y_SIZE + j] = HIGH;
+			if (image_in[(i + 1) * Y_SIZE + (j - 1)] == HIGH) image_out[i * Y_SIZE + j] = HIGH;
+			if (image_in[(i + 1) * Y_SIZE + j] == HIGH) image_out[i * Y_SIZE + j] = HIGH;
+			if (image_in[(i + 1) * Y_SIZE + (j + 1)] == HIGH) image_out[i * Y_SIZE + j] = HIGH;
 		}
 	}
 }
-
-void thinning(unsigned char* image_in[], unsigned char* image_out[]) {
+//二値画像の細線化
+void thinning(unsigned char* image_in, unsigned char* image_out) {
 	int ia[9] = { 0 };
 	int ic[9] = { 0 };
 	int i, ix, iy, m, ir, iv, iw;
 
 	for (iy = 0; iy < Y_SIZE; iy++)
 		for (ix = 0; ix < X_SIZE; ix++)
-			image_out[iy][ix] = image_in[iy][ix];
+			image_out[iy * Y_SIZE + ix] = image_in[iy * Y_SIZE + ix];
 	m = 100; ir = 1;
 	while (ir != 0) {
 		ir = 0;
 		for (iy = 1; iy < Y_SIZE; iy++)
 			for (ix = 1; ix < Y_SIZE; ix++) {
-				if (image_out[iy][ix] != HIGH) {
+				if (image_out[iy * Y_SIZE + ix] != HIGH) {
 					continue;
 				}
-				ia[0] = image_out[iy][ix + 1];
-				ia[1] = image_out[iy - 1][ix + 1];
-				ia[2] = image_out[iy - 1][ix];
-				ia[3] = image_out[iy - 1][ix - 1];
-				ia[4] = image_out[iy][ix - 1];
-				ia[5] = image_out[iy + 1][ix - 1];
-				ia[6] = image_out[iy + 1][ix];
-				ia[7] = image_out[iy + 1][ix + 1];
+				ia[0] = image_out[iy * Y_SIZE + ix + 1];
+				ia[1] = image_out[(iy - 1) * Y_SIZE + ix + 1];
+				ia[2] = image_out[(iy - 1) * Y_SIZE + ix];
+				ia[3] = image_out[(iy - 1) * Y_SIZE + ix - 1];
+				ia[4] = image_out[iy * Y_SIZE + ix - 1];
+				ia[5] = image_out[(iy + 1) * Y_SIZE + ix - 1];
+				ia[6] = image_out[(iy + 1) * Y_SIZE + ix];
+				ia[7] = image_out[(iy + 1)* Y_SIZE + ix + 1];
 				for (i = 0; i < 8; i++) {
 					if (ia[i] == m) {
 						ia[i] = HIGH; ic[i] = 0;
-					} else {
+					}
+					else {
 						if (ia[i] < HIGH) ia[i] = 0;
 						ic[i] = ia[i];
 					}
@@ -627,17 +627,17 @@ void thinning(unsigned char* image_in[], unsigned char* image_out[]) {
 				if (cconc(ia) != 1) {
 					continue;
 				}
-				if (image_out[iy - 1][ix] == m) {
+				if (image_out[(iy - 1) * Y_SIZE + ix] == m) {
 					ia[2] = 0;
 					if (cconc(ia) != 1) continue;
 					ia[2] = HIGH;
 				}
-				if (image_out[iy][ix - 1] == m) {
+				if (image_out[iy * Y_SIZE + ix - 1] == m) {
 					ia[4] = 0;
 					if (cconc(ia) != 1) continue;
 					ia[4] = HIGH;
 				}
-				image_out[iy][ix] = m;
+				image_out[iy * Y_SIZE + ix] = m;
 				ir++;
 			}
 		m++;
@@ -646,12 +646,13 @@ void thinning(unsigned char* image_in[], unsigned char* image_out[]) {
 	for (iy = 0; iy < Y_SIZE; iy++) {
 
 		for (ix = 0; ix < X_SIZE; ix++) {
-			if (image_out[iy][ix] < HIGH) {
-				image_out[iy][ix] = 0;
+			if (image_out[iy * Y_SIZE + ix] < HIGH) {
+				image_out[iy * Y_SIZE + ix] = 0;
 			}
 		}
 	}
 }
+
 
 int cconc(int inb[]) {
 	int icn = 0;
@@ -663,15 +664,15 @@ int cconc(int inb[]) {
 	return(icn);
 }
 
-void labeling(unsigned char* image_in[], unsigned char* image_label[], int* cnt) {
+void labeling(unsigned char* image_in, unsigned char* image_label, int* cnt) {
 	int i, j, label;
 	for (i = 0; i < Y_SIZE; i++)
 		for (j = 0; j < X_SIZE; j++)
-			image_label[i][j] = image_in[i][j];
+			image_label[i * Y_SIZE + j] = image_in[i * Y_SIZE + j];
 	label = L_BASE;
 	for (i = 0; i < Y_SIZE; i++)
 		for (j = 0; j < X_SIZE; j++) {
-			if (image_label[i][j] == HIGH) {
+			if (image_label[i * Y_SIZE + j] == HIGH) {
 				if (label >= HIGH) {
 					printf("ERROR! to many labels. \n");
 					return(-1);
@@ -683,45 +684,45 @@ void labeling(unsigned char* image_in[], unsigned char* image_label[], int* cnt)
 	printf(" no. of labels : %d \n", *cnt);
 }
 
-int labelset(unsigned char* image[], int xs, int ys, int label) {
+int labelset(unsigned char* image, int xs, int ys, int label) {
 	int i, j, cnt;
 
-	image[ys][xs] = label;
+	image[ys * Y_SIZE + xs] = label;
 	for (;;) {
 		cnt = 0;
 		for (i = 0; i < Y_SIZE; i++) {
 			for (j = 0; j < X_SIZE; j++) {
-				if (image[i][j] == label) {
-					if (image[i][j + 1] == HIGH) {
-						image[i][j + 1] = label;
+				if (image[i * Y_SIZE + j] == label) {
+					if (image[i * Y_SIZE + j + 1] == HIGH) {
+						image[i * Y_SIZE + j + 1] = label;
 						cnt++;
 					}
-					if (image[i - 1][j + 1] == HIGH) {
-						image[i - 1][j + 1] = label;
+					if (image[i * Y_SIZE + j + 1] == HIGH) {
+						image[i * Y_SIZE + j + 1] = label;
 						cnt++;
 					}
-					if (image[i - 1][j] == HIGH) {
-						image[i - 1][j] = label;
+					if (image[(i-1) * Y_SIZE + j] == HIGH) {
+						image[(i - 1) * Y_SIZE + j] = label;
 						cnt++;
 					}
-					if (image[i - 1][j - 1] == HIGH) {
-						image[i - 1][j - 1] = label;
+					if (image[(i - 1) * Y_SIZE + j - 1] == HIGH) {
+						image[(i - 1) * Y_SIZE + j - 1] = label;
 						cnt++;
 					}
-					if (image[i][j - 1] == HIGH) {
-						image[i][j - 1] = label;
+					if (image[i * Y_SIZE + j - 1] == HIGH) {
+						image[i * Y_SIZE + j - 1] = label;
 						cnt++;
 					}
-					if (image[i + 1][j - 1] == HIGH) {
-						image[i + 1][j - 1] = label;
+					if (image[(i + 1) * Y_SIZE + j - 1] == HIGH) {
+						image[(i + 1) * Y_SIZE + j - 1] = label;
 						cnt++;
 					}
-					if (image[i + 1][j] == HIGH) {
-						image[i + 1][j] = label;
+					if (image[(i + 1) * Y_SIZE + j] == HIGH) {
+						image[(i + 1) * Y_SIZE + j] = label;
 						cnt++;
 					}
-					if (image[i + 1][j + 1] == HIGH) {
-						image[i + 1][j + 1] = label;
+					if (image[(i + 1) * Y_SIZE + j + 1] == HIGH) {
+						image[(i + 1) * Y_SIZE + j + 1] = label;
 						cnt++;
 					}
 				}
@@ -733,12 +734,12 @@ int labelset(unsigned char* image[], int xs, int ys, int label) {
 	}
 }
 
-void features(unsigned char* image_label_in[], unsigned char* image_label_out[], int cnt, float size[], float ratio[]) {
+void features(unsigned char* image_label_in, unsigned char* image_label_out, int cnt, float size[], float ratio[]) {
 	int i, j, center_x, center_y;
 	float l;
 	for (i = 0; i < Y_SIZE; i++) {
 		for (j = 0; j < X_SIZE; j++) {
-			image_label_out[i][j] = image_label_in[i][j];
+			image_label_out[i * Y_SIZE + j] = image_label_in[i * Y_SIZE + j];
 		}
 	}
 	printf("no      面積　　周囲長　　円形度　　重心(x,y)\n");
@@ -746,7 +747,7 @@ void features(unsigned char* image_label_in[], unsigned char* image_label_out[],
 		size[i] = calc_size(image_label_out, (i + L_BASE), &center_x, &center_y);
 		l = calc_length(image_label_out, i + L_BASE);
 		ratio[i] = 4 * PI * size[i] / (1 * 1);
-		image_label_out[center_y][center_x] = HIGH;
+		image_label_out[center_y * Y_SIZE + center_x] = HIGH;
 		printf("%d   %f   %f   %f   (%d,%d\n", i, size[i], 1, ratio, center_x, center_y);
 	}
 }
