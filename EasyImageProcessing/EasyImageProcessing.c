@@ -754,7 +754,7 @@ void features(unsigned char* image_label_in, unsigned char* image_label_out, int
 	for (i = 0; i < cnt; i++) {
 		size[i] = calc_size(image_label_out, (i + L_BASE), &center_x, &center_y);
 		l = calc_length(image_label_out, i + L_BASE);
-		ratio[i] = 4 * PI * size[i] / (l * 1);
+		ratio[i] = 4 * PI * size[i] / (l * l);
 		image_label_out[center_y * Y_SIZE + center_x] = HIGH;
 		printf("%d   %f   %f   %f   (%d,%d\n", i, size[i], 1, ratio, center_x, center_y);
 	}
@@ -763,27 +763,24 @@ int calc_size(unsigned char* image_label, int label, int* cx, int* cy) {
 	int i, j;
 	float tx, ty, total;
 	tx = 0; ty = 0; total = 0;
-	for (i = 0; i < Y_SIZE; i++) {
+	for (i = 0; i < Y_SIZE; i++)
 		for (j = 0; j < X_SIZE; j++) {
-			if (image_label[i*Y_SIZE+j] == label) {
+			if (image_label[i * Y_SIZE + j] == label) {
 				tx += j; ty += i; total++;
 			}
 			if (total == 0.0)return(0.0);
 			*cx = tx / total; *cy = ty / total;
-			return(total);
 		}
-	}
+	return(total);
+
 }
 int calc_length(unsigned char* image_label, int label) {
 	int i, j;
 
-	for (i = 0; i < Y_SIZE; i++) {
-		for (j = 0; j < X_SIZE; j++) {
-			if (image_label[i*Y_SIZE+j] == label) {
+	for (i = 0; i < Y_SIZE; i++) 
+		for (j = 0; j < X_SIZE; j++) 
+			if (image_label[i*Y_SIZE+j] == label) 
 				return(trace(image_label, j - 1, i));
-			}
-		}
-	}
 }
 
 int trace(unsigned char* image_label, int  xs, int ys) {
@@ -807,7 +804,7 @@ int trace(unsigned char* image_label, int  xs, int ys) {
 		case 4:
 			if (image_label[(y - 1) * Y_SIZE + x + 1] != no && image_label[(y - 1) * Y_SIZE + x] == no)
 			{
-				x = x + 1; y = y - 1; l++;
+				x = x + 1; y = y - 1; l += ROOT2;
 				vec = 1; continue;
 			}
 		case 5:
@@ -819,7 +816,7 @@ int trace(unsigned char* image_label, int  xs, int ys) {
 		case 6:
 			if (image_label[(y - 1) * Y_SIZE + x - 1] != no && image_label[y * Y_SIZE + x - 1] == no)
 			{
-				x = x - 1; y = y - 1; l++;
+				x = x - 1; y = y - 1; l += ROOT2;
 				vec = 3; continue;
 			}
 		case 7:
@@ -829,13 +826,13 @@ int trace(unsigned char* image_label, int  xs, int ys) {
 				vec = 4; continue;
 			}
 		case 0:
-			if (image_label[(y + 1) * Y_SIZE + x] != no && image_label[(y + 1) * Y_SIZE + x] == no)
+			if (image_label[(y + 1) * Y_SIZE + x-1] != no && image_label[(y + 1) * Y_SIZE + x] == no)
 			{
-				x = x - 1; y = y + 1; l++;
+				x = x - 1; y = y + 1; l += ROOT2;
 				vec = 5; continue;
 			}
 		case 1:
-			if (image_label[(y + 1) * Y_SIZE + x + 1] != no && image_label[(y + 1) * Y_SIZE + x] == no)
+			if (image_label[(y + 1) * Y_SIZE + x] != no && image_label[(y + 1) * Y_SIZE + x+1] == no)
 			{
 				x = x; y = y + 1; l++;
 				vec = 6; continue;
@@ -843,7 +840,7 @@ int trace(unsigned char* image_label, int  xs, int ys) {
 		case 2:
 			if (image_label[(y + 1) * Y_SIZE + x + 1] != no && image_label[y * Y_SIZE + x + 1] == no)
 			{
-				x = x + 1; y = y + 1; l++;
+				x = x + 1; y = y + 1; l += ROOT2;
 				vec = 7; continue;
 			}
 			vec = 3;
