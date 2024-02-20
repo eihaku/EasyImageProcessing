@@ -240,7 +240,10 @@ void main()
 			labeling(image_in, image_work, &cnt);
 			features(image_work, image_out, cnt, size, ratio);
 			//display(*image_out, X_SIZE, Y_SIZE, X_WORK_POS, Y_WORK_POS);
-			image_copy(*image_work, *image_in);
+			image_write(*image_work, pBmpInfoHeader->biWidth, pBmpInfoHeader->biHeight, "710.bmp");
+			image_write(*image_out, pBmpInfoHeader->biWidth, pBmpInfoHeader->biHeight, "711.bmp");
+
+			image_copy(*image_in, *image_out);
 			for (;;) {
 				printf("1 : 円形度により物体を抽出　　\n");
 				printf("2 : 面積により物体を抽出	　\n");
@@ -256,9 +259,11 @@ void main()
 					printf("面積の最小、最大  ***");
 					scanf("%f %f", &size_min, &size_max);
 					size_extract(image_in, image_out, cnt, size, size_min, size_max);
+					image_write(*image_out, pBmpInfoHeader->biWidth, pBmpInfoHeader->biHeight, "714.bmp");
+
 				}
 				threshold(image_out, image_out, 1, 1);
-				display(*image_out, X_SIZE, Y_SIZE, X_OUT_POS, Y_OUT_POS);
+				//display(*image_out, X_SIZE, Y_SIZE, X_OUT_POS, Y_OUT_POS);
 				if (i == 9) break;
 			}
 			break;
@@ -752,11 +757,11 @@ void features(unsigned char* image_label_in, unsigned char* image_label_out, int
 	}
 	printf("no      面積　　周囲長　　円形度　　重心(x,y)\n");
 	for (i = 0; i < cnt; i++) {
-		size[i] = calc_size(image_label_out, (i + L_BASE), &center_x, &center_y);
+		size[i] = calc_size(image_label_out, i + L_BASE, &center_x, &center_y);
 		l = calc_length(image_label_out, i + L_BASE);
 		ratio[i] = 4 * PI * size[i] / (l * l);
 		image_label_out[center_y * Y_SIZE + center_x] = HIGH;
-		printf("%d   %f   %f   %f   (%d,%d\n", i, size[i], 1, ratio, center_x, center_y);
+		printf("%d   %f   %f   %f   (%d,%d)\n", i, size[i], l, ratio[i], center_x, center_y);
 	}
 }
 int calc_size(unsigned char* image_label, int label, int* cx, int* cy) {
@@ -764,15 +769,14 @@ int calc_size(unsigned char* image_label, int label, int* cx, int* cy) {
 	float tx, ty, total;
 	tx = 0; ty = 0; total = 0;
 	for (i = 0; i < Y_SIZE; i++)
-		for (j = 0; j < X_SIZE; j++) {
+		for (j = 0; j < X_SIZE; j++) 
 			if (image_label[i * Y_SIZE + j] == label) {
 				tx += j; ty += i; total++;
 			}
-			if (total == 0.0)return(0.0);
-			*cx = tx / total; *cy = ty / total;
-		}
+	if (total == 0.0)return(0.0);
+	*cx = tx / total; *cy = ty / total;
+	
 	return(total);
-
 }
 int calc_length(unsigned char* image_label, int label) {
 	int i, j;
@@ -790,11 +794,10 @@ int trace(unsigned char* image_label, int  xs, int ys) {
 
 	for (;;) {
 		if (x == xs && y == ys && l != 0) {
-			return(1);
+			return(l);
 		}
 		image_label[y*Y_SIZE+x] = HIGH;
-		switch (vec)
-		{
+		switch (vec){
 		case 3:
 			if (image_label[y*Y_SIZE+x + 1] != no && image_label[(y - 1)*Y_SIZE+x + 1] == no)
 			{
@@ -855,14 +858,16 @@ void ratio_extract(unsigned char* image_label_in, unsigned char* image_label_out
 		if (ratio[i] >= ratio_min && ratio[i] <= ratio_max) {
 			lno[j++] = L_BASE + i;
 		}
-	for (y = 0; y < Y_SIZE; y++)
+	for (y = 0; y < Y_SIZE; y++) {
 		for (x = 0; x < X_SIZE; x++) {
 			image_label_out[y * Y_SIZE + x] = 0;
 			for (i = 0; i < j; i++) {
-				if (image_label_in[y * Y_SIZE + x] == lno[i])
+				if (image_label_in[y * Y_SIZE + x] == lno[i]) {
 					image_label_out[y * Y_SIZE + x] = image_label_in[y * Y_SIZE + x];
+				}
 			}
 		}
+	}
 }
 void size_extract(unsigned char* image_label_in, unsigned char* image_label_out, int cnt, float size[], float size_min, float size_max) {
 	int i, j, x, y;
@@ -872,12 +877,13 @@ void size_extract(unsigned char* image_label_in, unsigned char* image_label_out,
 		if (size[i] >= size_min && size[i] <= size_max) {
 			lno[j++] = L_BASE + i;
 		}
-		for (y = 0; y < Y_SIZE; y++) {
-			for (x = 0; x < X_SIZE; x++) {
-				image_label_out[y * Y_SIZE + x] = 0;
-				for (i = 0; i < j; i++) {
-					if (image_label_in[y * Y_SIZE + x] == lno[i])
-						image_label_out[y * Y_SIZE + x] = image_label_in[y * Y_SIZE + x];
+	}
+	for (y = 0; y < Y_SIZE; y++) {
+		for (x = 0; x < X_SIZE; x++) {
+			image_label_out[y * Y_SIZE + x] = 0;
+			for (i = 0; i < j; i++) {
+				if (image_label_in[y * Y_SIZE + x] == lno[i]) {
+					image_label_out[y * Y_SIZE + x] = image_label_in[y * Y_SIZE + x];
 				}
 			}
 		}
