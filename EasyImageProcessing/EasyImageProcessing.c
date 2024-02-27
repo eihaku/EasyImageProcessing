@@ -284,7 +284,7 @@ void main()
 			if (i == 3) template1(image_in, image_out, amp);
 			if (i == 4) smooth(image_in, image_out, 1);
 			if (i == 5) smooth(image_in, image_out, 2);
-			display(*image_out, X_SIZE, Y_SIZE, X_OUT_POS, Y_OUT_POS);
+			//display(*image_out, X_SIZE, Y_SIZE, X_OUT_POS, Y_OUT_POS);
 			break;
 		case 9:
 			printf("1 :  明るさをｎ倍              \n");
@@ -889,7 +889,7 @@ void size_extract(unsigned char* image_label_in, unsigned char* image_label_out,
 		}
 	}
 }
-void gradient(unsigned char* image_in[], unsigned char* image_out[], float amp1) {
+void gradient(unsigned char* image_in, unsigned char* image_out, float amp1) {
 	static int cx[9] = { 0,0,0,0,1,0,0,0,-1 };
 	static int cy[9] = { 0,0,0,0,0,1,0,-1,0 };
 	int d[9];
@@ -898,15 +898,15 @@ void gradient(unsigned char* image_in[], unsigned char* image_out[], float amp1)
 
 	for (i = 1; i < Y_SIZE - 1; i++) {
 		for (j = 1; j < X_SIZE - 1; j++) {
-			d[0] = image_in[i - 1][j - 1];
-			d[1] = image_in[i - 1][j];
-			d[2] = image_in[i - 1][j + 1];
-			d[3] = image_in[i][j - 1];
-			d[4] = image_in[i][j];
-			d[5] = image_in[i][j + 1];
-			d[6] = image_in[i + 1][j - 1];
-			d[7] = image_in[i + 1][j];
-			d[8] = image_in[i + 1][j + 1];
+			d[0] = image_in[(i - 1)*Y_SIZE + j - 1];
+			d[1] = image_in[(i - 1) * Y_SIZE + j];
+			d[2] = image_in[(i - 1) * Y_SIZE + j + 1];
+			d[3] = image_in[i * Y_SIZE + j - 1];
+			d[4] = image_in[i * Y_SIZE + j];
+			d[5] = image_in[i * Y_SIZE + j + 1];
+			d[6] = image_in[(i + 1) * Y_SIZE + j - 1];
+			d[7] = image_in[(i + 1) * Y_SIZE + j];
+			d[8] = image_in[(i + 1) * Y_SIZE + j + 1];
 			xx = cx[0] * d[0] + cx[1] * d[1] + cx[2] * d[2] + cx[3] * d[3] + cx[4] * d[4] + cx[5] * d[5] + cx[6] * d[6] + cx[7] * d[7] + cx[8] * d[8];
 			yy = cy[0] * d[0] + cy[1] * d[1] + cy[2] * d[2] + cy[3] * d[3] + cy[4] * d[4] + cy[5] * d[5] + cy[6] * d[6] + cy[7] * d[7] + cy[8] * d[8];
 			zz = amp1 * (float)sqrt((float)(xx * xx + yy * yy));
@@ -915,11 +915,11 @@ void gradient(unsigned char* image_in[], unsigned char* image_out[], float amp1)
 			if (dat > 255) {
 				dat = 255;
 			}
-			image_out[i][j] = (char)(dat);
+			image_out[i*Y_SIZE+j] = (char)(dat);
 		}
 	}
 }
-void laplacian(unsigned char* image_in[], unsigned char* image_out[], float amp1) {
+void laplacian(unsigned char* image_in, unsigned char* image_out, float amp1) {
 	static int c[9] = { -1,-1,-1,-1,8,-1,-1,-1,-1 };
 	int d[9];
 	int i, j, dat;
@@ -927,15 +927,15 @@ void laplacian(unsigned char* image_in[], unsigned char* image_out[], float amp1
 
 	for (i = 1; i < Y_SIZE - 1; i++) {
 		for (j = 1; j < X_SIZE - 1; j++) {
-			d[0] = image_in[i - 1][j - 1];
-			d[1] = image_in[i - 1][j];
-			d[2] = image_in[i - 1][j + 1];
-			d[3] = image_in[i][j - 1];
-			d[4] = image_in[i][j];
-			d[5] = image_in[i][j + 1];
-			d[6] = image_in[i + 1][j - 1];
-			d[7] = image_in[i + 1][j];
-			d[8] = image_in[i + 1][j + 1];
+			d[0] = image_in[(i - 1) * Y_SIZE + j - 1];
+			d[1] = image_in[(i - 1) * Y_SIZE + j];
+			d[2] = image_in[(i - 1) * Y_SIZE + j + 1];
+			d[3] = image_in[i * Y_SIZE + j - 1];
+			d[4] = image_in[i * Y_SIZE + j];
+			d[5] = image_in[i * Y_SIZE + j + 1];
+			d[6] = image_in[(i + 1) * Y_SIZE + j - 1];
+			d[7] = image_in[(i + 1) * Y_SIZE + j];
+			d[8] = image_in[(i + 1) * Y_SIZE + j + 1];
 			z = c[0] * d[0] + c[1] * d[1] + c[2] * d[2] + c[3] * d[3] + c[4] * d[4] + c[5] * d[5] + c[6] * d[6] + c[7] * d[7] + c[8] * d[8];
 			zz = amp1 * z;
 			dat = (int)(zz);
@@ -945,26 +945,26 @@ void laplacian(unsigned char* image_in[], unsigned char* image_out[], float amp1
 			if (dat > 255) {
 				dat = 255;
 			}
-			image_out[i][j] = (char)(dat);
+			image_out[i * Y_SIZE + j] = (char)(dat);
 		}
 	}
 }
-void template1(unsigned char* image_in[], unsigned char* image_out[], float amp1) {
+void template1(unsigned char* image_in, unsigned char* image_out, float amp1) {
 	int d0, d1, d2, d3, d4, d5, d6, d7, d8;
 	int i, j, k, dat, max;
 	int m[8];
 	float zz;
 	for (i = 1; i < Y_SIZE - 1; i++) {
 		for (j = 1; j < X_SIZE - 1; j++) {
-			d0 = image_in[i - 1][j - 1];
-			d1 = image_in[i - 1][j];
-			d2 = image_in[i - 1][j + 1];
-			d3 = image_in[i][j - 1];
-			d4 = image_in[i][j];
-			d5 = image_in[i][j + 1];
-			d6 = image_in[i + 1][j - 1];
-			d7 = image_in[i + 1][j];
-			d8 = image_in[i + 1][j + 1];
+			d0 = image_in[(i - 1) * Y_SIZE + j - 1];
+			d1 = image_in[(i - 1) * Y_SIZE + j];
+			d2 = image_in[(i - 1) * Y_SIZE + j + 1];
+			d3 = image_in[i * Y_SIZE + j - 1];
+			d4 = image_in[i * Y_SIZE + j];
+			d5 = image_in[i * Y_SIZE + j + 1];
+			d6 = image_in[(i + 1) * Y_SIZE + j - 1];
+			d7 = image_in[(i + 1) * Y_SIZE + j];
+			d8 = image_in[(i + 1) * Y_SIZE + j + 1];
 
 			m[0] = d0 + d1 + d2 + d3 - 2 * d4 + d5 - d6 - d7 - d8;
 			m[1] = d0 + d1 + d2 + d3 - 2 * d4 - d5 + d6 - d7 - d8;
@@ -985,32 +985,32 @@ void template1(unsigned char* image_in[], unsigned char* image_out[], float amp1
 			if (dat > 255) {
 				dat = 255;
 			}
-			image_out[i][j] = (char)(dat);
+			image_out[i * Y_SIZE + j] = (char)(dat);
 		}
 	}
 }
 
-void smooth(unsigned char* image_in[], unsigned char* image_out[], int which) {
+void smooth(unsigned char* image_in, unsigned char* image_out, int which) {
 	int i, j;
 	unsigned char c[9];
 
 	for (i = 1; i < Y_SIZE - 1; i++) {
 		for (j = 1; j < X_SIZE - 1; j++) {
-			c[0] = image_in[i - 1][j - 1];
-			c[1] = image_in[i - 1][j];
-			c[2] = image_in[i - 1][j + 1];
-			c[3] = image_in[i][j - 1];
-			c[4] = image_in[i][j];
-			c[5] = image_in[i][j + 1];
-			c[6] = image_in[i + 1][j - 1];
-			c[7] = image_in[i + 1][j];
-			c[8] = image_in[i + 1][j + 1];
+			c[0] = image_in[(i - 1) * Y_SIZE + j - 1];
+			c[1] = image_in[(i - 1) * Y_SIZE + j];
+			c[2] = image_in[(i - 1) * Y_SIZE + j + 1];
+			c[3] = image_in[i * Y_SIZE + j - 1];
+			c[4] = image_in[i * Y_SIZE + j];
+			c[5] = image_in[i * Y_SIZE + j + 1];
+			c[6] = image_in[(i + 1) * Y_SIZE + j - 1];
+			c[7] = image_in[(i + 1) * Y_SIZE + j];
+			c[8] = image_in[(i + 1) * Y_SIZE + j + 1];
 			switch (which) {
 			case 1:
-				image_out[i][j] = mean(c);
+				image_out[i * Y_SIZE + j] = mean(c);
 				break;
 			case 2:
-				image_out[i][j] = median(c);
+				image_out[i * Y_SIZE + j] = median(c);
 				break;
 			}
 		}
