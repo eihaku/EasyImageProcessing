@@ -1387,7 +1387,7 @@ void perspect(unsigned char* image_in, unsigned char* image_out, float ax, float
 	}
 }
 void param_pers(float k[], float a, float b, float x0, float y0, float z0, float z, float x, float y, float t, float s) {
-	float l[4 * Y_SIZE + 4], m[4 * Y_SIZE + 4], n[4 * Y_SIZE + 4], k1, k2, k3, k4, k5, k6, k7, k8, k9;
+	float l[4][4], m[4][4], n[4][4], k1, k2, k3, k4, k5, k6, k7, k8, k9;
 	double u, v, w;
 	int i;
 	int xs = X_SIZE / 2;
@@ -1397,26 +1397,26 @@ void param_pers(float k[], float a, float b, float x0, float y0, float z0, float
 	v = y * 3.141592 / 180.0;
 	w = z * 3.141592 / 180.0;
 
-	l[0 * Y_SIZE + 0] = 1.0 / xs; l[0 * Y_SIZE + 1] = 0; l[0 * Y_SIZE + 2] = 0; l[0 * Y_SIZE + 3] = 0; l[1 * Y_SIZE + 0] = 0; l[1 * Y_SIZE + 1] = -1.0 / xs; l[1 * Y_SIZE + 2] = 0; l[1 * Y_SIZE + 3] = 0; l[2 * Y_SIZE + 0] = 0; l[2 * Y_SIZE + 1] = 0; l[2 * Y_SIZE + 2] = 1; l[2 * Y_SIZE + 3] = 0; l[3 * Y_SIZE + 0] = 0; l[3 * Y_SIZE + 1] = 0; l[3 * Y_SIZE + 2] = 0; l[3 * Y_SIZE + 3] = 1;
-	m[0 * Y_SIZE + 0] = a; m[0 * Y_SIZE + 1] = 0; m[0 * Y_SIZE + 2] = 0; m[0 * Y_SIZE + 3] = 0; m[1 * Y_SIZE + 0] = 0; m[1 * Y_SIZE + 1] = b; m[1 * Y_SIZE + 2] = 0; m[1 * Y_SIZE + 3] = 0; m[2 * Y_SIZE + 0] = 0; m[2 * Y_SIZE + 1] = 0; m[2 * Y_SIZE + 2] = 1; m[2 * Y_SIZE + 3] = 0; m[3 * Y_SIZE + 0] = 0; m[3 * Y_SIZE + 1] = 0; m[3 * Y_SIZE + 2] = 0; m[3 * Y_SIZE + 3] = 1;
+	l[0][0] = 1.0 / xs; l[0][1] = 0; l[0][2] = 0; l[0][3] = 0; l[1][0] = 0; l[1][1] = -1.0 / xs; l[1][2] = 0; l[1][3] = 0; l[2][0] = 0; l[2][1] = 0; l[2][2] = 1; l[2][3] = 0; l[3][0] = 0; l[3][1] = 0; l[3][2] = 0; l[3][3] = 1;
+	m[0][0] = a; m[0][1] = 0; m[0][2] = 0; m[0][3] = 0; m[1][0] = 0; m[1][1] = b; m[1][2] = 0; m[1][3] = 0; m[2][0] = 0; m[2][1] = 0; m[2][2] = 1; m[2][3] = 0; m[3][0] = 0; m[3][1] = 0; m[3][2] = 0; m[3][3] = 1;
 	matrix(l, m, n);
-	l[0 * Y_SIZE + 0] = 1; l[0 * Y_SIZE + 1] = 0; l[0 * Y_SIZE + 2] = 0; l[0 * Y_SIZE + 3] = 0; l[1 * Y_SIZE + 0] = 0; l[1 * Y_SIZE + 1] = -1; l[1 * Y_SIZE + 2] = 0; l[1 * Y_SIZE + 3] = 0; l[2 * Y_SIZE + 0] = 0; l[2 * Y_SIZE + 1] = 0; l[2 * Y_SIZE + 2] = 1; l[2 * Y_SIZE + 3] = 0; l[3 * Y_SIZE + 0] = 0; l[3 * Y_SIZE + 1] = 0; l[3 * Y_SIZE + 2] = 0; l[3 * Y_SIZE + 3] = 1;
+	l[0][0] = 1; l[0][1] = 0; l[0][2] = 0; l[0][3] = 0; l[1][0] = 0; l[1][1] = -1; l[1][2] = 0; l[1][3] = 0; l[2][0] = 0; l[2][1] = 0; l[2][2] = 1; l[2][3] = 0; l[3][0] = 0; l[3][1] = 0; l[3][2] = 0; l[3][3] = 1;
 	matrix(n, l, m);
-	n[0 * Y_SIZE + 0] = cos(w); n[0 * Y_SIZE + 1] = sin(w); n[0 * Y_SIZE + 2] = 0; n[0 * Y_SIZE + 3] = 0; n[1 * Y_SIZE + 0] = -sin(w); n[1 * Y_SIZE + 1] = cos(w); n[1 * Y_SIZE + 2] = 0; n[1 * Y_SIZE + 3] = 0; n[2 * Y_SIZE + 0] = 0; n[2 * Y_SIZE + 1] = 0; n[2 * Y_SIZE + 2] = 1; n[2 * Y_SIZE + 3] = 0; n[3 * Y_SIZE + 0] = 0; n[3 * Y_SIZE + 1] = 0; n[3 * Y_SIZE + 2] = 0; n[2 * Y_SIZE + 3] = 1;
+	n[0][0] = cos(w); n[0][1] = sin(w); n[0][2] = 0; n[0][3] = 0; n[1][0] = -sin(w); n[1][1] = cos(w); n[1][2] = 0; n[1][3] = 0; n[2][0] = 0; n[2][1] = 0; n[2][2] = 1; n[2][3] = 0; n[3][0] = 0; n[3][1] = 0; n[3][2] = 0; n[2][3] = 1;
 	matrix(m, n, l);
-	m[0 * Y_SIZE + 0] = 1; m[0 * Y_SIZE + 1] = 0; m[0 * Y_SIZE + 2] = 0; m[0 * Y_SIZE + 3] = 0; m[1 * Y_SIZE + 0] = 0; m[1 * Y_SIZE + 1] = cos(u); m[1 * Y_SIZE + 2] = sin(u); m[1 * Y_SIZE + 3] = 0; m[2 * Y_SIZE + 0] = 0; m[2 * Y_SIZE + 1] = -sin(u); m[2 * Y_SIZE + 2] = cos(u); m[2 * Y_SIZE + 3] = 0; m[3 * Y_SIZE + 0] = 0; m[3 * Y_SIZE + 1] = 0; m[3 * Y_SIZE + 2] = 0; m[3 * Y_SIZE + 3] = 1;
+	m[0][0] = 1; m[0][1] = 0; m[0][2] = 0; m[0][3] = 0; m[1][0] = 0; m[1][1] = cos(u); m[1][2] = sin(u); m[1][3] = 0; m[2][0] = 0; m[2][1] = -sin(u); m[2][2] = cos(u); m[2][3] = 0; m[3][0] = 0; m[3][1] = 0; m[3][2] = 0; m[3][3] = 1;
 	matrix(l, m, n);
-	l[0 * Y_SIZE + 0] = cos(v); l[0 * Y_SIZE + 1] = 0; l[0 * Y_SIZE + 2] = sin(v); l[0 * Y_SIZE + 3] = 0; l[1 * Y_SIZE + 0] = 0; l[1 * Y_SIZE + 1] = 1; l[1 * Y_SIZE + 2] = 0; l[1 * Y_SIZE + 3] = 0; l[2 * Y_SIZE + 0] = -sin(v); l[2 * Y_SIZE + 1] = 0; l[2 * Y_SIZE + 2] = cos(v); l[2 * Y_SIZE + 3] = 0; l[3 * Y_SIZE + 0] = 0; l[3 * Y_SIZE + 1] = 0; l[3 * Y_SIZE + 2] = 0; l[3 * Y_SIZE + 3] = 1;
+	l[0][0] = cos(v); l[0][1] = 0; l[0][2] = sin(v); l[0][3] = 0; l[1][0] = 0; l[1][1] = 1; l[1][2] = 0; l[1][3] = 0; l[2][0] = -sin(v); l[2][1] = 0; l[2][2] = cos(v); l[2][3] = 0; l[3][0] = 0; l[3][1] = 0; l[3][2] = 0; l[3][3] = 1;
 	matrix(n, l, m);
-	n[0 * Y_SIZE + 0] = 1; n[0 * Y_SIZE + 1] = 0; n[0 * Y_SIZE + 2] = 0; n[0 * Y_SIZE + 3] = 0; n[1 * Y_SIZE + 0] = 0; n[1 * Y_SIZE + 1] = 1; n[1 * Y_SIZE + 2] = 0; n[1 * Y_SIZE + 3] = 0; n[2 * Y_SIZE + 0] = 0; n[2 * Y_SIZE + 1] = 0; n[2 * Y_SIZE + 2] = -1; n[2 * Y_SIZE + 3] = 0; n[3 * Y_SIZE + 0] = 0; n[3 * Y_SIZE + 1] = 0; n[3 * Y_SIZE + 2] = t; n[3 * Y_SIZE + 3] = 1;
+	n[0][0] = 1; n[0][1] = 0; n[0][2] = 0; n[0][3] = 0; n[1][0] = 0; n[1][1] = 1; n[1][2] = 0; n[1][3] = 0; n[2][0] = 0; n[2][1] = 0; n[2][2] = -1; n[2][3] = 0; n[3][0] = 0; n[3][1] = 0; n[3][2] = t; n[3][3] = 1;
 	matrix(m, n, l);
-	m[0 * Y_SIZE + 0] = 1; m[0 * Y_SIZE + 1] = 0; m[0 * Y_SIZE + 2] = 0; m[0 * Y_SIZE + 3] = 0; m[1 * Y_SIZE + 0] = 0; m[1 * Y_SIZE + 1] = 1; m[1 * Y_SIZE + 2] = 0; m[1 * Y_SIZE + 3] = 0; m[2 * Y_SIZE + 0] = 0; m[2 * Y_SIZE + 1] = -sin(u); m[2 * Y_SIZE + 2] = 1 / s; m[2 * Y_SIZE + 3] = 1 / s;; m[3 * Y_SIZE + 0] = 0; m[3 * Y_SIZE + 1] = 0; m[3 * Y_SIZE + 2] = 0; m[3 * Y_SIZE + 3] = 1;
+	m[0][0] = 1; m[0][1] = 0; m[0][2] = 0; m[0][3] = 0; m[1][0] = 0; m[1][1] = 1; m[1][2] = 0; m[1][3] = 0; m[2][0] = 0; m[2][1] = -sin(u); m[2][2] = 1 / s; m[2][3] = 1 / s;; m[3][0] = 0; m[3][1] = 0; m[3][2] = 0; m[3][3] = 1;
 	matrix(l, m, n);
-	l[0 * Y_SIZE + 0] = xs; l[0 * Y_SIZE + 1] = 0; l[0 * Y_SIZE + 2] = 0; l[0 * Y_SIZE + 3] = 0; l[1 * Y_SIZE + 0] = 0; l[1 * Y_SIZE + 1] = 1; l[1 * Y_SIZE + 2] = 0; l[1 * Y_SIZE + 3] = 0; l[2 * Y_SIZE + 0] = 0; l[2 * Y_SIZE + 1] = 0; l[2 * Y_SIZE + 2] = 1 / s; l[2 * Y_SIZE + 3] = 1 / s; l[3 * Y_SIZE + 0] = 0; l[3 * Y_SIZE + 1] = 0; l[3 * Y_SIZE + 2] = 0; l[3 * Y_SIZE + 3] = 1;
+	l[0][0] = xs; l[0][1] = 0; l[0][2] = 0; l[0][3] = 0; l[1][0] = 0; l[1][1] = 1; l[1][2] = 0; l[1][3] = 0; l[2][0] = 0; l[2][1] = 0; l[2][2] = 1 / s; l[2][3] = 1 / s; l[3][0] = 0; l[3][1] = 0; l[3][2] = 0; l[3][3] = 1;
 	matrix(n, l, m);
-	k1 = m[0 * Y_SIZE + 3]; k2 = m[1 * Y_SIZE + 3]; k3 = m[3 * Y_SIZE + 3];
-	k4 = m[0 * Y_SIZE + 0]; k5 = m[1 * Y_SIZE + 0]; k6 = m[3 * Y_SIZE + 0];
-	k7 = m[0 * Y_SIZE + 1]; k8 = m[1 * Y_SIZE + 1]; k9 = m[3 * Y_SIZE + 1];
+	k1 = m[0][3]; k2 = m[1][3]; k3 = m[3][3];
+	k4 = m[0][0]; k5 = m[1][0]; k6 = m[3][0];
+	k7 = m[0][1]; k8 = m[1][1]; k9 = m[3][1];
 	k[0] = k7 * k2 - k8 * k1;	k[1] = k5 * k1 - k4 * k2;	k[2] = k4 * k8 - k7 * k5;
 	k[3] = k8 * k3 - k9 * k2;	k[6] = k9 * k1 - k7 * k3;	k[4] = k6 * k2 - k5 * k3;
 	k[7] = k4 * k3 - k6 * k1;	k[5] = k5 * k9 - k8 * k6;	k[8] = k7 * k6 - k4 * k9;
@@ -1432,14 +1432,14 @@ void param_pers(float k[], float a, float b, float x0, float y0, float z0, float
 	*/
 
 }
-void matrix(float l[4], float m[4], float* n[4]) {
+void matrix(float l[4], float m[4], float n[4]) {
 	int i, j, k;
 	float p;
 	for (i = 0; i < 4; i++) {
 		for (j = 0; j < 4; j++) {
 			p = 0;
 			for (k = 0; k < 4; k++) p = p + l[i * Y_SIZE + k] * m[k * Y_SIZE + j];
-			n[i][j] = p;
+			n[i * Y_SIZE + j] = p;
 		}
 	}
 }
