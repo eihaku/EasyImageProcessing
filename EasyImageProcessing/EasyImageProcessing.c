@@ -1190,12 +1190,24 @@ void scale_near(unsigned char* image_in, unsigned char* image_out, float zx, flo
 
 	for (i = -ys; i < ys; i++) {
 		for (j = -xs; j < xs; j++) {
-			if (i > 0)m = i / zy + 0.5; else m - i / zy - 0.5;
-			if (j > 0)n = j / zy + 0.5; else n - i / zy - 0.5;
-			if ((m >= -ys) && (m < ys) && (n >= -xs) && (n < xs))
+			if (i > 0) {
+				m = i / zy + 0.5;
+			}
+			else {
+				m = i / zy - 0.5;
+			}
+			if (j > 0) {
+				n = j / zy + 0.5;
+			}
+			else {
+				n = i / zy - 0.5;
+			}
+			if ((m >= -ys) && (m < ys) && (n >= -xs) && (n < xs)) {
 				image_out[(i + ys) * Y_SIZE + j + xs] = image_in[(m + ys) * Y_SIZE + n + xs];
-			else
+			}
+			else {
 				image_out[(i + ys) * Y_SIZE + j + xs] = 0;
+			}
 		}
 	}
 }
@@ -1428,9 +1440,7 @@ void param_pers(float k[], float a, float b, float x0, float y0, float z0, float
 	printf("d= %f\n", k[6]);
 	printf("e= %f\n", k[7]);
 	printf("f= %f\n", k[8]);
-
 	*/
-
 }
 void matrix(float l[4], float m[4], float n[4]) {
 	int i, j, k;
@@ -1438,8 +1448,8 @@ void matrix(float l[4], float m[4], float n[4]) {
 	for (i = 0; i < 4; i++) {
 		for (j = 0; j < 4; j++) {
 			p = 0;
-			for (k = 0; k < 4; k++) p = p + l[i * Y_SIZE + k] * m[k * Y_SIZE + j];
-			n[i * Y_SIZE + j] = p;
+			for (k = 0; k < 4; k++) p = p + l[i * 4 + k] * m[k * 4 + j];
+			n[i * 4 + j] = p;
 		}
 	}
 }
