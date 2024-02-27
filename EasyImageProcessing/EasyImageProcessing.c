@@ -1038,46 +1038,46 @@ int median(unsigned char c[]) {
 	return(c[4]);
 }
 
-void amplify(unsigned char* image_in[], unsigned char* image_out[], int n) {
+void amplify(unsigned char* image_in, unsigned char* image_out, int n) {
 	int i, j, nf;
 	for (i = 0; i < Y_SIZE; i++) {
 		{
 			for (j = 0; j < X_SIZE; j++) {
-				nf = (int)image_in[i][j] * n;
+				nf = (int)image_in[i * Y_SIZE + j] * n;
 				if (nf > HIGH)nf = HIGH;
-				image_out[i][j] = (unsigned char)nf;
+				image_out[i * Y_SIZE + j] = (unsigned char)nf;
 			}
 		}
 	}
 }
-void range(unsigned char* image_in[], int* fmax, int* fmin) {
+void range(unsigned char* image_in, int* fmax, int* fmin) {
 	int i, j, nf;
 	*fmax = LOW;
 	*fmin = HIGH;
 	for (i = 0; i < Y_SIZE; i++) {
 		for (j = 0; j < X_SIZE; j++) {
-			nf = (int)image_in[i][j];
+			nf = (int)image_in[i * Y_SIZE + j];
 			if (nf > *fmax) *fmax = nf;
 			if (nf < *fmin)*fmin = nf;
 		}
 	}
 }
 
-void enpand(unsigned char* image_in[], unsigned char* image_out[], int fmax, int  fmin) {
+void enpand(unsigned char* image_in, unsigned char* image_out, int fmax, int  fmin) {
 	int i, j;
 	float d;
 
 	for (i = 0; i < Y_SIZE; i++) {
 		for (j = 0; j < X_SIZE; j++) {
 			d = (float)(HIGH - LOW) / (float)(fmax - fmin)
-				* ((int)image_in[i][j] - fmin) + LOW;
-			if (d > HIGH) image_out[i][j] = HIGH;
-			else if (d < LOW) image_out[i][j] = LOW;
-			else image_out[i][j] = d;
+				* ((int)image_in[i * Y_SIZE + j] - fmin) + LOW;
+			if (d > HIGH) image_out[i * Y_SIZE + j] = HIGH;
+			else if (d < LOW) image_out[i * Y_SIZE + j] = LOW;
+			else image_out[i * Y_SIZE + j] = d;
 		}
 	}
 }
-void plane(unsigned char* image_in[], unsigned char* image_out[], int hist[]) {
+void plane(unsigned char* image_in, unsigned char* image_out, int hist[]) {
 	int i, j, iy, jx, sum;
 	int delt;
 	int low;
@@ -1089,7 +1089,7 @@ void plane(unsigned char* image_in[], unsigned char* image_out[], int hist[]) {
 	low = HIGH;
 	for (i = 0; i < Y_SIZE; i++) {
 		for (j = 0; j < X_SIZE; j++) {
-			image_out[i][j] = 0;
+			image_out[i * Y_SIZE + j] = 0;
 		}
 	}
 
@@ -1101,14 +1101,14 @@ void plane(unsigned char* image_in[], unsigned char* image_out[], int hist[]) {
 		if (low < high) {
 			for (iy = 0; iy < Y_SIZE; iy++) {
 				for (jx = 0; jx < X_SIZE; jx++) {
-					if (((int)image_in[iy][jx] >= low + 1) & ((int)image_in[iy][jx] <= high)) {
-						image_out[iy][jx] = (unsigned char)i;
+					if (((int)image_in[iy * Y_SIZE + jx] >= low + 1) & ((int)image_in[iy * Y_SIZE + jx] <= high)) {
+						image_out[iy * Y_SIZE + jx] = (unsigned char)i;
 					}
 				}
 			}
 			for (j = 0; j < delt; j++) {
-				image_out[buf[j].y][buf[j].x] = (unsigned char)i;
-				image_in[buf[j].y][buf[j].x] = (unsigned char)(low + 1);
+				image_out[buf[j].y * Y_SIZE + buf[j].x] = (unsigned char)i;
+				image_in[buf[j].y * Y_SIZE + buf[j].x] = (unsigned char)(low + 1);
 			}
 
 
@@ -1117,13 +1117,13 @@ void plane(unsigned char* image_in[], unsigned char* image_out[], int hist[]) {
 		}
 	}
 }
-void sort(unsigned char* image_in[], struct xyw data[], int level) {
+void sort(unsigned char* image_in, struct xyw data[], int level) {
 	int i, j, inum, wt;
 	struct xyw temp;
 	inum = 0;
 	for (i = 0; i < Y_SIZE; i++) {
 		for (j = 0; j < X_SIZE; j++) {
-			if ((int)image_in[i][j] == level) {
+			if ((int)image_in[i * Y_SIZE + j] == level) {
 				weight(image_in, i, j, &wt);
 				data[inum].y = i;
 				data[inum].x = j;
@@ -1147,7 +1147,7 @@ void sort(unsigned char* image_in[], struct xyw data[], int level) {
 		}
 	}
 }
-void weight(unsigned char* image_in[], int i, int j, int* wt) {
+void weight(unsigned char* image_in, int i, int j, int* wt) {
 	int dim, djm;
 	int dip, djp;
 	int k, d[8];
@@ -1169,19 +1169,19 @@ void weight(unsigned char* image_in[], int i, int j, int* wt) {
 		djp = j;
 	}
 
-	d[0] = (int)image_in[dim][djm];
-	d[1] = (int)image_in[dim][j];
-	d[2] = (int)image_in[dim][djp];
-	d[3] = (int)image_in[i][djm];
-	d[4] = (int)image_in[i][djp];
-	d[5] = (int)image_in[dip][djm];
-	d[6] = (int)image_in[dip][j];
-	d[7] = (int)image_in[dip][djp];
+	d[0] = (int)image_in[dim * Y_SIZE + djm];
+	d[1] = (int)image_in[dim * Y_SIZE + j];
+	d[2] = (int)image_in[dim * Y_SIZE + djp];
+	d[3] = (int)image_in[i * Y_SIZE + djm];
+	d[4] = (int)image_in[i * Y_SIZE + djp];
+	d[5] = (int)image_in[dip * Y_SIZE + djm];
+	d[6] = (int)image_in[dip * Y_SIZE + j];
+	d[7] = (int)image_in[dip * Y_SIZE + djp];
 	for (k = 0; k < 8; k++) {
 		*wt = *wt + d[i];
 	}
 }
-void scale_near(unsigned char* image_in[], unsigned char* image_out[], float zx, float zy) {
+void scale_near(unsigned char* image_in, unsigned char* image_out, float zx, float zy) {
 	int i, j, m, n;
 	float x, y, p, q;
 	int xs = X_SIZE / 2;
@@ -1193,13 +1193,13 @@ void scale_near(unsigned char* image_in[], unsigned char* image_out[], float zx,
 			if (i > 0)m = i / zy + 0.5; else m - i / zy - 0.5;
 			if (j > 0)n = j / zy + 0.5; else n - i / zy - 0.5;
 			if ((m >= -ys) && (m < ys) && (n >= -xs) && (n < xs))
-				image_out[i + ys][j + xs] = image_in[m + ys][n + xs];
+				image_out[(i + ys) * Y_SIZE + j + xs] = image_in[(m + ys) * Y_SIZE + n + xs];
 			else
-				image_out[i + ys][j + xs] = 0;
+				image_out[(i + ys) * Y_SIZE + j + xs] = 0;
 		}
 	}
 }
-void scale(unsigned char* image_in[], unsigned char* image_out[], float zx, float zy) {
+void scale(unsigned char* image_in, unsigned char* image_out, float zx, float zy) {
 	int i, j, m, n;
 	float x, y, p, q;
 	int xs = X_SIZE / 2;
@@ -1214,16 +1214,16 @@ void scale(unsigned char* image_in[], unsigned char* image_out[], float zx, floa
 			q - y - m;
 			p = x - n;
 			if ((m >= -ys) && (m < ys) && (n >= -xs) && (n < xs))
-				d = (1.0 - q) * ((1.0 - p) * image_in[m + ys][n + xs] + p * image_in[m + ys][n + 1 + xs]) + q * ((1.0 - p) * image_in[m + 1 + ys][n + xs] + p * image_in[m + 1 + ys][n + 1 + xs]);
+				d = (1.0 - q) * ((1.0 - p) * image_in[(m + ys) * Y_SIZE + n + xs] + p * image_in[(m + ys) * Y_SIZE + n + 1 + xs]) + q * ((1.0 - p) * image_in[(m + 1 + ys) * Y_SIZE + n + xs] + p * image_in[(m + 1 + ys) * Y_SIZE + n + 1 + xs]);
 			else
 				d = 0;
 			if (d < 0)d = 0;
 			if (d > 255)d = 255;
-			image_out[i + ys][j + xs] = d;
+			image_out[(i + ys) * Y_SIZE + j + xs] = d;
 		}
 	}
 }
-void rotation(unsigned char* image_in[], unsigned char* image_out[], float deg) {
+void rotation(unsigned char* image_in, unsigned char* image_out, float deg) {
 	int i, j, m, n;
 	float x, y, p, q;
 	double r;
@@ -1244,7 +1244,7 @@ void rotation(unsigned char* image_in[], unsigned char* image_out[], float deg) 
 			q = y - m;
 			p = x - n;
 			if ((m >= -ys) && (m < ys) && (n >= -xs) && (n < xs))
-				d = (1.0 - q) * ((1.0 - p) * image_in[m + ys][n + xs] + p * image_in[m + ys][n + xs]) + q * ((1.0 - p) * image_in[m + 1 + ys][n + xs] + p * image_in[m + 1 + ys][n + 1 + xs]);
+				d = (1.0 - q) * ((1.0 - p) * image_in[(m + ys) * Y_SIZE + n + xs] + p * image_in[(m + ys) * Y_SIZE + n + xs]) + q * ((1.0 - p) * image_in[(m + 1 + ys) * Y_SIZE + n + xs] + p * image_in[(m + 1 + ys) * Y_SIZE + n + 1 + xs]);
 			else
 				d = 0;
 			if (d < 0) {
@@ -1252,12 +1252,12 @@ void rotation(unsigned char* image_in[], unsigned char* image_out[], float deg) 
 			}
 			if (d > 255) {
 				d = 255;
-				image_out[i + ys][j + xs] = d;
+				image_out[(i + ys) * Y_SIZE + j + xs] = d;
 			}
 		}
 	}
 }
-void shift(unsigned char* image_in[], unsigned char* image_out[], float px, float py) {
+void shift(unsigned char* image_in, unsigned char* image_out, float px, float py) {
 	int i = 0;
 	int	j = 0;
 	int	m, n;
@@ -1275,7 +1275,7 @@ void shift(unsigned char* image_in[], unsigned char* image_out[], float px, floa
 			q = y - m;
 			p = x - n;
 			if ((m >= -ys) && (m < ys) && (n >= -xs) && (n < xs)) {
-				d = (1.0 - q) * ((1.0 - p) * image_in[m + ys][n + xs] + p * image_in[m + ys][n + 1 + xs]) + q * ((1.0 - p) * image_in[m + 1 + ys][n + xs] + p * image_in[m + 1 + ys][n + 1 + xs]);
+				d = (1.0 - q) * ((1.0 - p) * image_in[(m + ys) * Y_SIZE + n + xs] + p * image_in[(m + ys) * Y_SIZE + n + 1 + xs]) + q * ((1.0 - p) * image_in[(m + 1 + ys) * Y_SIZE + n + xs] + p * image_in[(m + 1 + ys) * Y_SIZE + n + 1 + xs]);
 			}
 			else {
 
@@ -1286,12 +1286,12 @@ void shift(unsigned char* image_in[], unsigned char* image_out[], float px, floa
 				if (d > 255) {
 					d = 255;
 				}
-				image_out[i + ys][j + xs] = d;
+				image_out[(i + ys) * Y_SIZE + j + xs] = d;
 			}
 		}
 	}
 }
-void affine(unsigned char* image_in[], unsigned char* image_out[], float deg, float zx, float zy, float px, float py) {
+void affine(unsigned char* image_in, unsigned char* image_out, float deg, float zx, float zy, float px, float py) {
 	int i, j, m, n;
 	float x, y, u, v, p, q;
 	float r;
@@ -1326,13 +1326,13 @@ void affine(unsigned char* image_in[], unsigned char* image_out[], float deg, fl
 			}
 			if ((m >= -ys) && (m < ys) && (n >= -xs) && (n < xs)) {
 
-				d = (1.0 - q) * ((1.0 - p) * image_in[m + ys][n + xs] + p * image_in[m + ys][n + 1 + xs]) + q * ((1.0 - p) * image_in[m + 1 + ys][n + xs] + p * image_in[m + 1 + ys][n + 1 + xs]);
+				d = (1.0 - q) * ((1.0 - p) * image_in[(m + ys) * Y_SIZE + n + xs] + p * image_in[(m + ys) * Y_SIZE + n + 1 + xs]) + q * ((1.0 - p) * image_in[(m + 1 + ys) * Y_SIZE + n + xs] + p * image_in[(m + 1 + ys) * Y_SIZE + n + 1 + xs]);
 			}
 			else {
 				d = 0;
 				if (d < 0)d = 0;
 				if (d > 255)d = 255;
-				image_out[i + ys][j + xs] = d;
+				image_out[(i + ys) * Y_SIZE + j + xs] = d;
 
 
 			}
@@ -1340,7 +1340,7 @@ void affine(unsigned char* image_in[], unsigned char* image_out[], float deg, fl
 		}
 	}
 }
-void perspect(unsigned char* image_in[], unsigned char* image_out[], float ax, float ay, float px, float py, float pz, float rz, float rx, float ry, float v, float s) {
+void perspect(unsigned char* image_in, unsigned char* image_out, float ax, float ay, float px, float py, float pz, float rz, float rx, float ry, float v, float s) {
 	int i, j, m, n;
 	float x, y, w, p, q;
 	float k[9];
@@ -1373,13 +1373,13 @@ void perspect(unsigned char* image_in[], unsigned char* image_out[], float ax, f
 			}
 			if ((m >= -ys) && (m < ys) && (n >= -xs) && (n < xs)) {
 
-				d = (1.0 - q) * ((1.0 - p) * image_in[m + ys][n + xs] + p * image_in[m + ys][n + 1 + xs]) + q * ((1.0 - p) * image_in[m + 1 + ys][n + xs] + p * image_in[m + 1 + ys][n + 1 + xs]);
+				d = (1.0 - q) * ((1.0 - p) * image_in[(m + ys) * Y_SIZE + n + xs] + p * image_in[(m + ys) * Y_SIZE + n + 1 + xs]) + q * ((1.0 - p) * image_in[(m + 1 + ys) * Y_SIZE + n + xs] + p * image_in[(m + 1 + ys) * Y_SIZE + n + 1 + xs]);
 			}
 			else {
 				d = 0;
 				if (d < 0)d = 0;
 				if (d > 255)d = 255;
-				image_out[i + ys][j + xs] = d;
+				image_out[(i + ys) * Y_SIZE + j + xs] = d;
 			}
 
 
@@ -1387,7 +1387,7 @@ void perspect(unsigned char* image_in[], unsigned char* image_out[], float ax, f
 	}
 }
 void param_pers(float k[], float a, float b, float x0, float y0, float z0, float z, float x, float y, float t, float s) {
-	float l[4][4], m[4][4], n[4][4], k1, k2, k3, k4, k5, k6, k7, k8, k9;
+	float l[4 * Y_SIZE + 4], m[4 * Y_SIZE + 4], n[4 * Y_SIZE + 4], k1, k2, k3, k4, k5, k6, k7, k8, k9;
 	double u, v, w;
 	int i;
 	int xs = X_SIZE / 2;
@@ -1397,26 +1397,26 @@ void param_pers(float k[], float a, float b, float x0, float y0, float z0, float
 	v = y * 3.141592 / 180.0;
 	w = z * 3.141592 / 180.0;
 
-	l[0][0] = 1.0 / xs; l[0][1] = 0; l[0][2] = 0; l[0][3] = 0; l[1][0] = 0; l[1][1] = -1.0 / xs; l[1][2] = 0; l[1][3] = 0; l[2][0] = 0; l[2][1] = 0; l[2][2] = 1; l[2][3] = 0; l[3][0] = 0; l[3][1] = 0; l[3][2] = 0; l[3][3] = 1;
-	m[0][0] = a; m[0][1] = 0; m[0][2] = 0; m[0][3] = 0; m[1][0] = 0; m[1][1] = b; m[1][2] = 0; m[1][3] = 0; m[2][0] = 0; m[2][1] = 0; m[2][2] = 1; m[2][3] = 0; m[3][0] = 0; m[3][1] = 0; m[3][2] = 0; m[3][3] = 1;
+	l[0 * Y_SIZE + 0] = 1.0 / xs; l[0 * Y_SIZE + 1] = 0; l[0 * Y_SIZE + 2] = 0; l[0 * Y_SIZE + 3] = 0; l[1 * Y_SIZE + 0] = 0; l[1 * Y_SIZE + 1] = -1.0 / xs; l[1 * Y_SIZE + 2] = 0; l[1 * Y_SIZE + 3] = 0; l[2 * Y_SIZE + 0] = 0; l[2 * Y_SIZE + 1] = 0; l[2 * Y_SIZE + 2] = 1; l[2 * Y_SIZE + 3] = 0; l[3 * Y_SIZE + 0] = 0; l[3 * Y_SIZE + 1] = 0; l[3 * Y_SIZE + 2] = 0; l[3 * Y_SIZE + 3] = 1;
+	m[0 * Y_SIZE + 0] = a; m[0 * Y_SIZE + 1] = 0; m[0 * Y_SIZE + 2] = 0; m[0 * Y_SIZE + 3] = 0; m[1 * Y_SIZE + 0] = 0; m[1 * Y_SIZE + 1] = b; m[1 * Y_SIZE + 2] = 0; m[1 * Y_SIZE + 3] = 0; m[2 * Y_SIZE + 0] = 0; m[2 * Y_SIZE + 1] = 0; m[2 * Y_SIZE + 2] = 1; m[2 * Y_SIZE + 3] = 0; m[3 * Y_SIZE + 0] = 0; m[3 * Y_SIZE + 1] = 0; m[3 * Y_SIZE + 2] = 0; m[3 * Y_SIZE + 3] = 1;
 	matrix(l, m, n);
-	l[0][0] = 1; l[0][1] = 0; l[0][2] = 0; l[0][3] = 0; l[1][0] = 0; l[1][1] = -1; l[1][2] = 0; l[1][3] = 0; l[2][0] = 0; l[2][1] = 0; l[2][2] = 1; l[2][3] = 0; l[3][0] = 0; l[3][1] = 0; l[3][2] = 0; l[3][3] = 1;
+	l[0 * Y_SIZE + 0] = 1; l[0 * Y_SIZE + 1] = 0; l[0 * Y_SIZE + 2] = 0; l[0 * Y_SIZE + 3] = 0; l[1 * Y_SIZE + 0] = 0; l[1 * Y_SIZE + 1] = -1; l[1 * Y_SIZE + 2] = 0; l[1 * Y_SIZE + 3] = 0; l[2 * Y_SIZE + 0] = 0; l[2 * Y_SIZE + 1] = 0; l[2 * Y_SIZE + 2] = 1; l[2 * Y_SIZE + 3] = 0; l[3 * Y_SIZE + 0] = 0; l[3 * Y_SIZE + 1] = 0; l[3 * Y_SIZE + 2] = 0; l[3 * Y_SIZE + 3] = 1;
 	matrix(n, l, m);
-	n[0][0] = cos(w); n[0][1] = sin(w); n[0][2] = 0; n[0][3] = 0; n[1][0] = -sin(w); n[1][1] = cos(w); n[1][2] = 0; n[1][3] = 0; n[2][0] = 0; n[2][1] = 0; n[2][2] = 1; n[2][3] = 0; n[3][0] = 0; n[3][1] = 0; n[3][2] = 0; n[2][3] = 1;
+	n[0 * Y_SIZE + 0] = cos(w); n[0 * Y_SIZE + 1] = sin(w); n[0 * Y_SIZE + 2] = 0; n[0 * Y_SIZE + 3] = 0; n[1 * Y_SIZE + 0] = -sin(w); n[1 * Y_SIZE + 1] = cos(w); n[1 * Y_SIZE + 2] = 0; n[1 * Y_SIZE + 3] = 0; n[2 * Y_SIZE + 0] = 0; n[2 * Y_SIZE + 1] = 0; n[2 * Y_SIZE + 2] = 1; n[2 * Y_SIZE + 3] = 0; n[3 * Y_SIZE + 0] = 0; n[3 * Y_SIZE + 1] = 0; n[3 * Y_SIZE + 2] = 0; n[2 * Y_SIZE + 3] = 1;
 	matrix(m, n, l);
-	m[0][0] = 1; m[0][1] = 0; m[0][2] = 0; m[0][3] = 0; m[1][0] = 0; m[1][1] = cos(u); m[1][2] = sin(u); m[1][3] = 0; m[2][0] = 0; m[2][1] = -sin(u); m[2][2] = cos(u); m[2][3] = 0; m[3][0] = 0; m[3][1] = 0; m[3][2] = 0; m[3][3] = 1;
+	m[0 * Y_SIZE + 0] = 1; m[0 * Y_SIZE + 1] = 0; m[0 * Y_SIZE + 2] = 0; m[0 * Y_SIZE + 3] = 0; m[1 * Y_SIZE + 0] = 0; m[1 * Y_SIZE + 1] = cos(u); m[1 * Y_SIZE + 2] = sin(u); m[1 * Y_SIZE + 3] = 0; m[2 * Y_SIZE + 0] = 0; m[2 * Y_SIZE + 1] = -sin(u); m[2 * Y_SIZE + 2] = cos(u); m[2 * Y_SIZE + 3] = 0; m[3 * Y_SIZE + 0] = 0; m[3 * Y_SIZE + 1] = 0; m[3 * Y_SIZE + 2] = 0; m[3 * Y_SIZE + 3] = 1;
 	matrix(l, m, n);
-	l[0][0] = cos(v); l[0][1] = 0; l[0][2] = sin(v); l[0][3] = 0; l[1][0] = 0; l[1][1] = 1; l[1][2] = 0; l[1][3] = 0; l[2][0] = -sin(v); l[2][1] = 0; l[2][2] = cos(v); l[2][3] = 0; l[3][0] = 0; l[3][1] = 0; l[3][2] = 0; l[3][3] = 1;
+	l[0 * Y_SIZE + 0] = cos(v); l[0 * Y_SIZE + 1] = 0; l[0 * Y_SIZE + 2] = sin(v); l[0 * Y_SIZE + 3] = 0; l[1 * Y_SIZE + 0] = 0; l[1 * Y_SIZE + 1] = 1; l[1 * Y_SIZE + 2] = 0; l[1 * Y_SIZE + 3] = 0; l[2 * Y_SIZE + 0] = -sin(v); l[2 * Y_SIZE + 1] = 0; l[2 * Y_SIZE + 2] = cos(v); l[2 * Y_SIZE + 3] = 0; l[3 * Y_SIZE + 0] = 0; l[3 * Y_SIZE + 1] = 0; l[3 * Y_SIZE + 2] = 0; l[3 * Y_SIZE + 3] = 1;
 	matrix(n, l, m);
-	n[0][0] = 1; n[0][1] = 0; n[0][2] = 0; n[0][3] = 0; n[1][0] = 0; n[1][1] = 1; n[1][2] = 0; n[1][3] = 0; n[2][0] = 0; n[2][1] = 0; n[2][2] = -1; n[2][3] = 0; n[3][0] = 0; n[3][1] = 0; n[3][2] = t; n[3][3] = 1;
+	n[0 * Y_SIZE + 0] = 1; n[0 * Y_SIZE + 1] = 0; n[0 * Y_SIZE + 2] = 0; n[0 * Y_SIZE + 3] = 0; n[1 * Y_SIZE + 0] = 0; n[1 * Y_SIZE + 1] = 1; n[1 * Y_SIZE + 2] = 0; n[1 * Y_SIZE + 3] = 0; n[2 * Y_SIZE + 0] = 0; n[2 * Y_SIZE + 1] = 0; n[2 * Y_SIZE + 2] = -1; n[2 * Y_SIZE + 3] = 0; n[3 * Y_SIZE + 0] = 0; n[3 * Y_SIZE + 1] = 0; n[3 * Y_SIZE + 2] = t; n[3 * Y_SIZE + 3] = 1;
 	matrix(m, n, l);
-	m[0][0] = 1; m[0][1] = 0; m[0][2] = 0; m[0][3] = 0; m[1][0] = 0; m[1][1] = 1; m[1][2] = 0; m[1][3] = 0; m[2][0] = 0; m[2][1] = -sin(u); m[2][2] = 1 / s; m[2][3] = 1 / s;; m[3][0] = 0; m[3][1] = 0; m[3][2] = 0; m[3][3] = 1;
+	m[0 * Y_SIZE + 0] = 1; m[0 * Y_SIZE + 1] = 0; m[0 * Y_SIZE + 2] = 0; m[0 * Y_SIZE + 3] = 0; m[1 * Y_SIZE + 0] = 0; m[1 * Y_SIZE + 1] = 1; m[1 * Y_SIZE + 2] = 0; m[1 * Y_SIZE + 3] = 0; m[2 * Y_SIZE + 0] = 0; m[2 * Y_SIZE + 1] = -sin(u); m[2 * Y_SIZE + 2] = 1 / s; m[2 * Y_SIZE + 3] = 1 / s;; m[3 * Y_SIZE + 0] = 0; m[3 * Y_SIZE + 1] = 0; m[3 * Y_SIZE + 2] = 0; m[3 * Y_SIZE + 3] = 1;
 	matrix(l, m, n);
-	l[0][0] = xs; l[0][1] = 0; l[0][2] = 0; l[0][3] = 0; l[1][0] = 0; l[1][1] = 1; l[1][2] = 0; l[1][3] = 0; l[2][0] = 0; l[2][1] = 0; l[2][2] = 1 / s; l[2][3] = 1 / s; l[3][0] = 0; l[3][1] = 0; l[3][2] = 0; l[3][3] = 1;
+	l[0 * Y_SIZE + 0] = xs; l[0 * Y_SIZE + 1] = 0; l[0 * Y_SIZE + 2] = 0; l[0 * Y_SIZE + 3] = 0; l[1 * Y_SIZE + 0] = 0; l[1 * Y_SIZE + 1] = 1; l[1 * Y_SIZE + 2] = 0; l[1 * Y_SIZE + 3] = 0; l[2 * Y_SIZE + 0] = 0; l[2 * Y_SIZE + 1] = 0; l[2 * Y_SIZE + 2] = 1 / s; l[2 * Y_SIZE + 3] = 1 / s; l[3 * Y_SIZE + 0] = 0; l[3 * Y_SIZE + 1] = 0; l[3 * Y_SIZE + 2] = 0; l[3 * Y_SIZE + 3] = 1;
 	matrix(n, l, m);
-	k1 = m[0][3]; k2 = m[1][3]; k3 = m[3][3];
-	k4 = m[0][0]; k5 = m[1][0]; k6 = m[3][0];
-	k7 = m[0][1]; k8 = m[1][1]; k9 = m[3][1];
+	k1 = m[0 * Y_SIZE + 3]; k2 = m[1 * Y_SIZE + 3]; k3 = m[3 * Y_SIZE + 3];
+	k4 = m[0 * Y_SIZE + 0]; k5 = m[1 * Y_SIZE + 0]; k6 = m[3 * Y_SIZE + 0];
+	k7 = m[0 * Y_SIZE + 1]; k8 = m[1 * Y_SIZE + 1]; k9 = m[3 * Y_SIZE + 1];
 	k[0] = k7 * k2 - k8 * k1;	k[1] = k5 * k1 - k4 * k2;	k[2] = k4 * k8 - k7 * k5;
 	k[3] = k8 * k3 - k9 * k2;	k[6] = k9 * k1 - k7 * k3;	k[4] = k6 * k2 - k5 * k3;
 	k[7] = k4 * k3 - k6 * k1;	k[5] = k5 * k9 - k8 * k6;	k[8] = k7 * k6 - k4 * k9;
@@ -1432,18 +1432,18 @@ void param_pers(float k[], float a, float b, float x0, float y0, float z0, float
 	*/
 
 }
-void matrix(float* l[4], float* m[4], float* n[4]) {
+void matrix(float l[4], float m[4], float* n[4]) {
 	int i, j, k;
 	float p;
 	for (i = 0; i < 4; i++) {
 		for (j = 0; j < 4; j++) {
 			p = 0;
-			for (k = 0; k < 4; k++) p = p + l[i][k] * m[k][j];
+			for (k = 0; k < 4; k++) p = p + l[i * Y_SIZE + k] * m[k * Y_SIZE + j];
 			n[i][j] = p;
 		}
 	}
 }
-void  masking(unsigned char* image_in[], unsigned char* image_out[], unsigned char image_mask[]) {
+void  masking(unsigned char* image_in, unsigned char* image_out, unsigned char image_mask[]) {
 	int i;
 	for (i = 0; i < Y_SIZE * X_SIZE; i++) {
 		if (image_mask[i] == HIGH) {
