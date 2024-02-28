@@ -319,12 +319,12 @@ void main()
 				scanf("%f %f", &a, &b);
 				scale_near(image_in, image_out, a, b);
 			}
-			if (1 == 2) {
+			if (i == 2) {
 				printf("披大率  横，縦 ***");
-				scanf("%f%f", &a, &b);
+				scanf("%f %f", &a, &b);
 				scale(image_in, image_out, a, b);
 			}
-			if (1 == 3) {
+			if (i == 3) {
 				printf(" 移動量  横，縱 ***");
 				scanf(" %f %f", &x0, &y0);
 				shift(image_in, image_out, x0, y0);
@@ -343,13 +343,13 @@ void main()
 				scanf("%f", &deg);
 				affine(image_in, image_out, deg, a, b, x0, y0);
 			}
-			if (1 == 6) {
+			if (i == 6) {
 				printf("披大率  横，縦 X,   Y   ***");
-				scanf("%f%f", &a, &b);
+				scanf("%f %f", &a, &b);
 				printf(" 移動量  横，縱 X,   Y,  Z   ***");
-				scanf(" %f %f %f", &x0, &y0, &z0);
+				scanf("%f %f %f", &x0, &y0, &z0);
 				printf("回転角(度) Z,   X,   Y   ***");
-				scanf("%f%f%f", &zr, &xr, &yr);
+				scanf("%f %f %f", &zr, &xr, &yr);
 				printf("視点の位置（Z方向)   ***");
 				scanf("%f", &v);
 				printf("スクリーンの位置（Z方向   ***");
@@ -1221,16 +1221,32 @@ void scale(unsigned char* image_in, unsigned char* image_out, float zx, float zy
 		for (j = -xs; j < xs; j++) {
 			y = i / zy;
 			x = j / zx;
-			if (y > 0)m = y; else m = y - 1;
-			if (x > 0)n = x; else n = x - 1;
-			q - y - m;
+			if (y > 0) {
+				m = y;
+			}
+			else {
+				m = y - 1;
+			}
+			if (x > 0) {
+				n = x;
+			}
+			else {
+				n = x - 1;
+			}
+			q = y - m;
 			p = x - n;
-			if ((m >= -ys) && (m < ys) && (n >= -xs) && (n < xs))
+			if ((m >= -ys) && (m < ys) && (n >= -xs) && (n < xs)){
 				d = (1.0 - q) * ((1.0 - p) * image_in[(m + ys) * Y_SIZE + n + xs] + p * image_in[(m + ys) * Y_SIZE + n + 1 + xs]) + q * ((1.0 - p) * image_in[(m + 1 + ys) * Y_SIZE + n + xs] + p * image_in[(m + 1 + ys) * Y_SIZE + n + 1 + xs]);
-			else
+			}
+			else {
 				d = 0;
-			if (d < 0)d = 0;
-			if (d > 255)d = 255;
+			}
+			if (d < 0) {
+				d = 0;
+			}
+			if (d > 255) {
+				d = 255;
+			}
 			image_out[(i + ys) * Y_SIZE + j + xs] = d;
 		}
 	}
@@ -1251,21 +1267,33 @@ void rotation(unsigned char* image_in, unsigned char* image_out, float deg) {
 		for (j = -xs; j < xs; j++) {
 			y = j * s + i * c;
 			x = j * c - i * s;
-			if (y > 0)m = y; else m = y - 1;
-			if (x > 0)n = x; else n = x - 1;
+			if (y > 0) {
+				m = y;
+			}
+			else {
+				m = y - 1;
+			}
+			if (x > 0) {
+				n = x;
+			}
+			else {
+				n = x - 1;
+			}
 			q = y - m;
 			p = x - n;
-			if ((m >= -ys) && (m < ys) && (n >= -xs) && (n < xs))
+			if ((m >= -ys) && (m < ys) && (n >= -xs) && (n < xs)) {
 				d = (1.0 - q) * ((1.0 - p) * image_in[(m + ys) * Y_SIZE + n + xs] + p * image_in[(m + ys) * Y_SIZE + n + xs]) + q * ((1.0 - p) * image_in[(m + 1 + ys) * Y_SIZE + n + xs] + p * image_in[(m + 1 + ys) * Y_SIZE + n + 1 + xs]);
-			else
+			}
+			else {
 				d = 0;
+			}
 			if (d < 0) {
 				d = 0;
 			}
 			if (d > 255) {
 				d = 255;
-				image_out[(i + ys) * Y_SIZE + j + xs] = d;
 			}
+			image_out[(i + ys) * Y_SIZE + j + xs] = d;
 		}
 	}
 }
@@ -1290,16 +1318,16 @@ void shift(unsigned char* image_in, unsigned char* image_out, float px, float py
 				d = (1.0 - q) * ((1.0 - p) * image_in[(m + ys) * Y_SIZE + n + xs] + p * image_in[(m + ys) * Y_SIZE + n + 1 + xs]) + q * ((1.0 - p) * image_in[(m + 1 + ys) * Y_SIZE + n + xs] + p * image_in[(m + 1 + ys) * Y_SIZE + n + 1 + xs]);
 			}
 			else {
-
-				if (d < 0)
-				{
-					d = 0;
-				}
-				if (d > 255) {
-					d = 255;
-				}
-				image_out[(i + ys) * Y_SIZE + j + xs] = d;
+				d = 0;
 			}
+			if (d < 0)
+			{
+				d = 0;
+			}
+			if (d > 255) {
+				d = 255;
+			}
+			image_out[(i + ys) * Y_SIZE + j + xs] = d;
 		}
 	}
 }
@@ -1319,7 +1347,7 @@ void affine(unsigned char* image_in, unsigned char* image_out, float deg, float 
 			v = i - py;
 			u = j - px;
 			y = (u * s + v * c) / zy;
-			x + (u * c - v * s) / zx;
+			x = (u * c - v * s) / zx;
 			if (y > 0) {
 				m = y;
 			}
