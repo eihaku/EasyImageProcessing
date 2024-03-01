@@ -8,29 +8,29 @@
 #include "params.h"
 
 #ifdef HYPER
-	#define display(image_in, xsize, ysize, xpos, ypos)\
+#define display(image_in, xsize, ysize, xpos, ypos)\
 			hyper_display(image_in, image_in, image_in, image_in, xsize, ysize, xpos, ypos)
-	#define INIT_SET	HFOn();
-	#define END_SET		HFOFF();
+#define INIT_SET	HFOn();
+#define END_SET		HFOFF();
 #else
-	#ifdef GG
-		#define display(image_in, xsize, ysize, xpos, ypos)\
+#ifdef GG
+#define display(image_in, xsize, ysize, xpos, ypos)\
 				gg_display(image_in, image_in, image_in, xsize, ysize,xpos,ypos)
-		#define INIT_SET
-		#define END_SET
-	#else
-		#ifdef SHAZO
-			#define display(image_in, xsize, ysize, xpos, ypos)\
+#define INIT_SET
+#define END_SET
+#else
+#ifdef SHAZO
+#define display(image_in, xsize, ysize, xpos, ypos)\
 					shazo_display(image_in, image_in, image_in, xsize, ysize,xpos,ypos)
-			#define INIT_SET
-			#define END_SET
-		#else
-			#define display(image_in, xsize, ysize, xpos, ypos)\
+#define INIT_SET
+#define END_SET
+#else
+#define display(image_in, xsize, ysize, xpos, ypos)\
 					gray_display(image_in, xsize, ysize, xpos, ypos)
-			#define INIT_SET	graph_init();	gray_palette();
-			#define END_SET		graph_clear();	palette8();
-		#endif
-	#endif
+#define INIT_SET	graph_init();	gray_palette();
+#define END_SET		graph_clear();	palette8();
+#endif
+#endif
 #endif
 
 #define X_IN_POS	280
@@ -64,6 +64,12 @@ typedef unsigned short ushort;
 typedef unsigned long  ulong;
 typedef unsigned int   uint;
 
+#pragma warning(disable:6031)
+#pragma warning(disable:6064)
+#pragma warning(disable:4996)
+#pragma warning(disable:4244)
+#pragma warning(disable:4305)
+#pragma warning(disable:4715)
 #pragma pack(1)
 typedef struct tagBITMAPFILEHEADER {
 	ushort  bfType;
@@ -98,7 +104,7 @@ void image_read(unsigned char* image, int xsize, int ysize, char* filename)
 	FILE* fp;
 	int DataOffset;
 	int DataSize;
-	int res;
+	//	int res;
 
 	if ((fp = fopen(filename, "rb")) == NULL) {
 		printf("%s open errer [rb] \n", filename);
@@ -107,7 +113,7 @@ void image_read(unsigned char* image, int xsize, int ysize, char* filename)
 	/* bmp画像のヘッダー情報 */
 	fread(bmpHeader, sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER), 1, fp);
 	pBmpFileHeader = (PBITMAPFILEHEADER)bmpHeader;
-	pBmpInfoHeader = (PBITMAPFILEHEADER)(bmpHeader + sizeof(BITMAPFILEHEADER));
+	pBmpInfoHeader = (PBITMAPINFOHEADER)(bmpHeader + sizeof(BITMAPFILEHEADER));
 
 	/* 画像ビット深度確認 */
 	if (pBmpInfoHeader->biBitCount > 8) {
@@ -159,7 +165,7 @@ void main()
 	char source[80];
 	char destin[80];
 	float a, b, x0, y0, z0, deg, xr, yr, zr, v, scr;
-	float an, amp;
+	float amp1;
 	float ratio_min, ratio_max;
 	float size_min, size_max;
 	int fmax, fmin;
@@ -214,13 +220,13 @@ void main()
 			printf("そのまま　= 1, 反転 = 2  ***  ");
 			scanf("%d", &mode);
 			mode = 1;
-				threshold(image_in, image_work, thres, mode);
-				image_copy(image_out, image_work);
-				{
-					char thrFileName[32];
-					sprintf(thrFileName, "threshold_%03d.bmp", thres);
-					image_write(*image_out, pBmpInfoHeader->biWidth, pBmpInfoHeader->biHeight, thrFileName);
-				}
+			threshold(image_in, image_work, thres, mode);
+			image_copy(image_out, image_work);
+			{
+				char thrFileName[32];
+				sprintf(thrFileName, "threshold_%03d.bmp", thres);
+				image_write(*image_out, pBmpInfoHeader->biWidth, pBmpInfoHeader->biHeight, thrFileName);
+			}
 			printf("===============================================================\n\n");
 			break;
 		case 5:
@@ -229,7 +235,7 @@ void main()
 
 			if (i == 1) contraction(image_in, image_out);
 			if (i == 2) expansion(image_in, image_out);
-			display(*image_out, X_SIZE, Y_SIZE, X_OUT_POS, Y_OUT_POS);
+			//display(*image_out, X_SIZE, Y_SIZE, X_OUT_POS, Y_OUT_POS);
 			printf("===============================================================\n\n");
 			break;
 		case 6:
@@ -243,7 +249,7 @@ void main()
 			image_write(*image_work, pBmpInfoHeader->biWidth, pBmpInfoHeader->biHeight, "710.bmp");
 			image_write(*image_out, pBmpInfoHeader->biWidth, pBmpInfoHeader->biHeight, "711.bmp");
 
-			image_copy(*image_in, *image_out);
+			image_copy(image_in, image_out);
 			for (;;) {
 				printf("1 : 円形度により物体を抽出　　\n");
 				printf("2 : 面積により物体を抽出	　\n");
@@ -270,18 +276,19 @@ void main()
 		case 8:
 			printf("1 : 1次微分(gradient)     \n");
 			printf("2 : 2次微分(laplacian)    \n");
-			printf("3 : テンプレート		  \n");
+			printf("3 : テンプレート		  \n");//模板
 			printf("4 : 移動平均			  \n");
-			printf("5 : メディアンフィルタ    \n");
+			printf("5 : メディアンフィルタ    \n");//中值滤波器
 			printf("			***");
 			scanf("%d", &i);
 			if (i == 1 || i == 2 || i == 3) {
 				printf("出力画像の利得　＊＊＊");
-				scanf("%f", &amp);
+				scanf("%f", &amp1);
+				if (i == 1) gradient(image_in, image_out, amp1);
+				if (i == 2) laplacian(image_in, image_out, amp1);
+				if (i == 3) template1(image_in, image_out, amp1);
 			}
-			if (i == 1) gradient(image_in, image_out, amp);
-			if (i == 2) laplacian(image_in, image_out, amp);
-			if (i == 3) template1(image_in, image_out, amp);
+
 			if (i == 4) smooth(image_in, image_out, 1);
 			if (i == 5) smooth(image_in, image_out, 2);
 			//display(*image_out, X_SIZE, Y_SIZE, X_OUT_POS, Y_OUT_POS);
@@ -304,11 +311,11 @@ void main()
 				histgram(image_in, hist);
 				plane(image_in, image_out, hist);
 			}
-			display(*image_out, X_SIZE, Y_SIZE, X_OUT_POS, Y_OUT_POS);
+			//display(*image_out, X_SIZE, Y_SIZE, X_OUT_POS, Y_OUT_POS);
 			break;
 		case 10:
 			printf("1 : 拡大　　縮小（最近傍法）");
-			printf("2：拉大•縮小（線形補間法）");
+			printf("2：拡大・縮小（線形補間法）");
 			printf("3: 移動（線形補間法）");
 			printf("4：回転（線形補間法）");
 			printf("5：アフィン変換（線形補間法");
@@ -356,19 +363,19 @@ void main()
 				scanf("%f", &scr);
 				perspect(image_in, image_out, a, b, x0, y0, z0, zr, xr, yr, v, scr);
 			}
-			display(*image_out, X_SIZE, Y_SIZE, X_OUT_POS, Y_OUT_POS);
+			//display(*image_out, X_SIZE, Y_SIZE, X_OUT_POS, Y_OUT_POS);
 			break;
-		case 91: image_copy(*image_out, *image_in);
-			display(*image_in, X_SIZE, Y_SIZE, X_IN_POS, Y_IN_POS);
+		case 91: image_copy(image_out, image_in);
+			//display(*image_in, X_SIZE, Y_SIZE, X_IN_POS, Y_IN_POS);
 			break;
-		case 92: image_copy(*image_out, *image_work);
-			display(*image_work, X_SIZE, Y_SIZE, X_WORK_POS, Y_WORK_POS);
+		case 92: image_copy(image_out, image_work);
+			//display(*image_work, X_SIZE, Y_SIZE, X_WORK_POS, Y_WORK_POS);
 			break;
-		case 93: image_copy(*image_work, *image_in);
-			display(*image_in, X_SIZE, Y_SIZE, X_IN_POS, Y_IN_POS);
+		case 93: image_copy(image_work, image_in);
+			//display(*image_in, X_SIZE, Y_SIZE, X_IN_POS, Y_IN_POS);
 			break;
 		case 94: masking(image_in, image_out, image_work);
-			display(*image_out, X_SIZE, Y_SIZE, X_OUT_POS, Y_OUT_POS);
+			//display(*image_out, X_SIZE, Y_SIZE, X_OUT_POS, Y_OUT_POS);
 			break;
 		case 99: eflg = 0;
 			break;
@@ -385,17 +392,17 @@ void init_set()
 	END_SET
 }
 
-void image_copy(unsigned char* image_dest, unsigned char* image_src)
+void image_copy(unsigned char image_dest[Y_SIZE][X_SIZE], unsigned char image_src[Y_SIZE][X_SIZE])
 {
 	/*copy*/
-	memcpy(image_dest, image_src, Y_SIZE * X_SIZE);
+	memcpy((unsigned char*)image_dest, (unsigned char*)image_src, Y_SIZE * X_SIZE);
 }
 
-void image_copy2(unsigned char* image_out, unsigned char* image_in)
+void image_copy2(unsigned char image_out[Y_SIZE][X_SIZE], unsigned char image_in[Y_SIZE][X_SIZE])
 {
 	/*copy*/
 	for (int i = 0; i < Y_SIZE; i++) {
-		memcpy(image_out + (X_SIZE * (Y_SIZE - 1 - i)), image_in + (i * X_SIZE), Y_SIZE);
+		memcpy((unsigned char*)image_out + (X_SIZE * (Y_SIZE - 1 - i)), (unsigned char*)image_in + (i * X_SIZE), Y_SIZE);
 	}
 }
 
@@ -419,15 +426,17 @@ void histprint(long hist[]) {
 	image_in:    入力画像配列
 	hist:        ヒストグラム
 -----------------------------------------------------------------------------*/
-void histgram(unsigned char* image, long hist[]) {
+void histgram(unsigned char image[Y_SIZE][X_SIZE], long hist[]) {
 	int n = 0;
 	int i = 0;
 	int j = 0;
 
 	for (n = 0; n < LEVEL; n++) hist[n] = 0;
-	for (i = 0; i < Y_SIZE * X_SIZE; i++) {
-		n = image[i];
-		hist[n]++;
+	for (i = 0; i < Y_SIZE; i++) {
+		for (j = 0; j < X_SIZE; j++) {
+			n = image[i][j];
+			hist[n]++;
+		}
 	}
 }
 
@@ -436,10 +445,11 @@ LEVEL = 256
 HIST_X_SIZE = 5
 HIST_y_SIZE = 10
 */
-float histimage(long hist[], unsigned char* image_hist) {
+void histimage(long hist[], unsigned char image_hist[Y_SIZE][X_SIZE]) {
 	int i = 0;
 	int j = 0;
 	int k = 0;
+	unsigned char* image = (unsigned char*)image_hist;
 
 	int  max, ratio, range;
 	long n;
@@ -447,8 +457,8 @@ float histimage(long hist[], unsigned char* image_hist) {
 	ratio = LEVEL / HIST_X_SIZE; //256/128
 	range = HIST_Y_SIZE - 5;     //128-5
 	for (i = 0; i < HIST_Y_SIZE * HIST_X_SIZE; i++) {
-		image_hist[i] = LOW;
-		
+		image[i] = LOW;
+
 	}
 	switch (ratio) {
 	case 1:
@@ -460,12 +470,12 @@ float histimage(long hist[], unsigned char* image_hist) {
 		for (i = 0; i < LEVEL; i++) {
 			d = (float)hist[i];
 			n = d / (float)max * (float)range;
-			for (j = 0; j <= n; j++) image_hist[((range - j) * HIST_Y_SIZE) + i] = HIGH;
+			for (j = 0; j <= n; j++) image_hist[(range - j) ][ i] = HIGH;
 		}
 		for (i = 0; i <= 4; i++) {
 			k = (HIST_X_SIZE / 4) * i;
 			if (k >= HIST_X_SIZE) k = HIST_X_SIZE - 1;
-			for (j = range; j < HIST_Y_SIZE; j++) image_hist[j * HIST_Y_SIZE + k] = HIGH;
+			for (j = range; j < HIST_Y_SIZE; j++) image_hist[j][k] = HIGH;
 		}
 		break;
 	case 2:
@@ -477,19 +487,17 @@ float histimage(long hist[], unsigned char* image_hist) {
 		for (i = 0; i < LEVEL / 2; i++) {
 			d = (float)(hist[2 * i] + hist[2 * i + 1]);
 			n = d / (float)max * (float)range;
-			for (j = 0; j <= n; j++) image_hist[((range - j) * HIST_Y_SIZE) + i] = HIGH;
+			for (j = 0; j <= n; j++) image_hist[(range - j) ][ i] = HIGH;
 
 		}
 		for (i = 0; i <= 4; i++) {
 			k = (HIST_X_SIZE / 4) * i;
 			if (k >= HIST_X_SIZE) k = HIST_X_SIZE - 1;
-			for (j = range; j < HIST_Y_SIZE; j++) image_hist[j * HIST_Y_SIZE + k] = HIGH;
+			for (j = range; j < HIST_Y_SIZE; j++) image_hist[j][k] = HIGH;
 
 		}
 		break;
 	default:
-		return(-1);
-
 		break;
 
 	}
@@ -502,7 +510,7 @@ void histsmooth(long hist_in[], long hist_out[]) {
 
 	for (n = 0; n < LEVEL; n++) {
 		sum = 0;
-		for (n = 0; n <= 2; m++) {
+		for (m = 0; m <= 2; m++) {
 			i = n + m;
 			if (i < 0) i = 0;
 			if (i > LEVEL - 1) i = LEVEL - 1;
@@ -513,29 +521,27 @@ void histsmooth(long hist_in[], long hist_out[]) {
 }
 
 
-void threshold(unsigned char* image_in, unsigned char* image_out, int thresh, int mode) 
+void threshold(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE], int thresh, int mode)
 {
 	int i, j;
-	int temp;
 
 	for (i = 0; i < Y_SIZE; i++) {
 		for (j = 0; j < X_SIZE; j++) {
-			temp = i * Y_SIZE + j;
 			switch (mode) {
 			case 1:
-				if ((int)image_in[temp] >= thresh) {
-					image_out[temp] = HIGH;
+				if ((int)image_in[i][j] >= thresh) {
+					image_out[i][j] = HIGH;
 				}
 				else {
-					image_out[temp] = LOW;
+					image_out[i][j] = LOW;
 				}
 				break;
 			case 2:
-				if ((int)image_in[temp] >= thresh) {
-					image_out[temp] = LOW;
+				if ((int)image_in[i][j] >= thresh) {
+					image_out[i][j] = LOW;
 				}
 				else {
-					image_out[temp] = HIGH;
+					image_out[i][j] = HIGH;
 				}
 				break;
 			default:
@@ -546,65 +552,65 @@ void threshold(unsigned char* image_in, unsigned char* image_out, int thresh, in
 }
 
 
-void contraction(unsigned char* image_in, unsigned char* image_out) {
+void contraction(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE]) {
 	int i, j;
 	for (i = 1; i < Y_SIZE - 1; i++) {
 		for (j = 1; j < X_SIZE - 1; j++) {
-			image_out[i * Y_SIZE + j] = image_in[i * Y_SIZE + j];
-			if (image_in[(i - 1) * Y_SIZE + (j - 1)] == LOW) image_out[i * Y_SIZE + j] = LOW;
-			if (image_in[(i - 1) * Y_SIZE + j] == LOW) image_out[i * Y_SIZE + j] = LOW;
-			if (image_in[(i - 1) * Y_SIZE + (j + 1)] == LOW) image_out[i * Y_SIZE + j] = LOW;
-			if (image_in[i * Y_SIZE + (j - 1)] == LOW) image_out[i * Y_SIZE + j] = LOW;
-			if (image_in[i * Y_SIZE + (j + 1)] == LOW) image_out[i * Y_SIZE + j] = LOW;
-			if (image_in[(i + 1) * Y_SIZE + (j - 1)] == LOW) image_out[i * Y_SIZE + j] = LOW;
-			if (image_in[(i + 1) * Y_SIZE + j] == LOW) image_out[i * Y_SIZE + j] = LOW;
-			if (image_in[(i + 1) * Y_SIZE + (j + 1)] == LOW) image_out[i * Y_SIZE + j] = LOW;
+			image_out[i][j] = image_in[i][j];
+			if (image_in[(i - 1)][(j - 1)] == LOW) image_out[i][j] = LOW;
+			if (image_in[(i - 1)][j] == LOW) image_out[i][j] = LOW;
+			if (image_in[(i - 1)][(j + 1)] == LOW) image_out[i][j] = LOW;
+			if (image_in[i][(j - 1)] == LOW) image_out[i][j] = LOW;
+			if (image_in[i][(j + 1)] == LOW) image_out[i][j] = LOW;
+			if (image_in[(i + 1)][(j - 1)] == LOW) image_out[i][j] = LOW;
+			if (image_in[(i + 1)][j] == LOW) image_out[i][j] = LOW;
+			if (image_in[(i + 1)][(j + 1)] == LOW) image_out[i][j] = LOW;
 		}
 	}
 }
 
-void expansion(unsigned char* image_in, unsigned char* image_out) {
+void expansion(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE]) {
 	int i, j;
 
 	for (i = 1; i < Y_SIZE - 1; i++) {
 		for (j = 1; j < X_SIZE - 1; j++) {
-			image_out[i * Y_SIZE + j] = image_in[i * Y_SIZE + j];
-			if (image_in[(i - 1) * Y_SIZE + (j - 1)] == HIGH) image_out[i * Y_SIZE + j] = HIGH;
-			if (image_in[(i - 1) * Y_SIZE + j] == HIGH) image_out[i * Y_SIZE + j] = HIGH;
-			if (image_in[(i - 1) * Y_SIZE + (j + 1)] == HIGH) image_out[i * Y_SIZE + j] = HIGH;
-			if (image_in[i * Y_SIZE + (j - 1)] == HIGH) image_out[i * Y_SIZE + j] = HIGH;
-			if (image_in[i * Y_SIZE + (j + 1)] == HIGH) image_out[i * Y_SIZE + j] = HIGH;
-			if (image_in[(i + 1) * Y_SIZE + (j - 1)] == HIGH) image_out[i * Y_SIZE + j] = HIGH;
-			if (image_in[(i + 1) * Y_SIZE + j] == HIGH) image_out[i * Y_SIZE + j] = HIGH;
-			if (image_in[(i + 1) * Y_SIZE + (j + 1)] == HIGH) image_out[i * Y_SIZE + j] = HIGH;
+			image_out[i][j] = image_in[i][j];
+			if (image_in[(i - 1)][(j - 1)] == HIGH) image_out[i][j] = HIGH;
+			if (image_in[(i - 1)][j] == HIGH) image_out[i][j] = HIGH;
+			if (image_in[(i - 1)][(j + 1)] == HIGH) image_out[i][j] = HIGH;
+			if (image_in[i][(j - 1)] == HIGH) image_out[i][j] = HIGH;
+			if (image_in[i][(j + 1)] == HIGH) image_out[i][j] = HIGH;
+			if (image_in[(i + 1)][(j - 1)] == HIGH) image_out[i][j] = HIGH;
+			if (image_in[(i + 1)][j] == HIGH) image_out[i][j] = HIGH;
+			if (image_in[(i + 1)][(j + 1)] == HIGH) image_out[i][j] = HIGH;
 		}
 	}
 }
 //二値画像の細線化
-void thinning(unsigned char* image_in, unsigned char* image_out) {
+void thinning(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE]) {
 	int ia[9] = { 0 };
 	int ic[9] = { 0 };
 	int i, ix, iy, m, ir, iv, iw;
 
 	for (iy = 0; iy < Y_SIZE; iy++)
 		for (ix = 0; ix < X_SIZE; ix++)
-			image_out[iy * Y_SIZE + ix] = image_in[iy * Y_SIZE + ix];
+			image_out[iy][ix] = image_in[iy][ix];
 	m = 100; ir = 1;
 	while (ir != 0) {
 		ir = 0;
 		for (iy = 1; iy < Y_SIZE; iy++)
 			for (ix = 1; ix < Y_SIZE; ix++) {
-				if (image_out[iy * Y_SIZE + ix] != HIGH) {
+				if (image_out[iy][ix] != HIGH) {
 					continue;
 				}
-				ia[0] = image_out[iy * Y_SIZE + ix + 1];
-				ia[1] = image_out[(iy - 1) * Y_SIZE + ix + 1];
-				ia[2] = image_out[(iy - 1) * Y_SIZE + ix];
-				ia[3] = image_out[(iy - 1) * Y_SIZE + ix - 1];
-				ia[4] = image_out[iy * Y_SIZE + ix - 1];
-				ia[5] = image_out[(iy + 1) * Y_SIZE + ix - 1];
-				ia[6] = image_out[(iy + 1) * Y_SIZE + ix];
-				ia[7] = image_out[(iy + 1)* Y_SIZE + ix + 1];
+				ia[0] = image_out[iy][ix + 1];
+				ia[1] = image_out[(iy - 1)][ix + 1];
+				ia[2] = image_out[(iy - 1)][ix];
+				ia[3] = image_out[(iy - 1)][ix - 1];
+				ia[4] = image_out[iy][ix - 1];
+				ia[5] = image_out[(iy + 1)][ix - 1];
+				ia[6] = image_out[(iy + 1)][ix];
+				ia[7] = image_out[(iy + 1)][ix + 1];
 				for (i = 0; i < 8; i++) {
 					if (ia[i] == m) {
 						ia[i] = HIGH; ic[i] = 0;
@@ -632,17 +638,17 @@ void thinning(unsigned char* image_in, unsigned char* image_out) {
 				if (cconc(ia) != 1) {
 					continue;
 				}
-				if (image_out[(iy - 1) * Y_SIZE + ix] == m) {
+				if (image_out[(iy - 1)][ix] == m) {
 					ia[2] = 0;
 					if (cconc(ia) != 1) continue;
 					ia[2] = HIGH;
 				}
-				if (image_out[iy * Y_SIZE + ix - 1] == m) {
+				if (image_out[iy][ix - 1] == m) {
 					ia[4] = 0;
 					if (cconc(ia) != 1) continue;
 					ia[4] = HIGH;
 				}
-				image_out[iy * Y_SIZE + ix] = m;
+				image_out[iy][ix] = m;
 				ir++;
 			}
 		m++;
@@ -651,8 +657,8 @@ void thinning(unsigned char* image_in, unsigned char* image_out) {
 	for (iy = 0; iy < Y_SIZE; iy++) {
 
 		for (ix = 0; ix < X_SIZE; ix++) {
-			if (image_out[iy * Y_SIZE + ix] < HIGH) {
-				image_out[iy * Y_SIZE + ix] = 0;
+			if (image_out[iy][ix] < HIGH) {
+				image_out[iy][ix] = 0;
 			}
 		}
 	}
@@ -673,15 +679,15 @@ int cconc(int inb[]) {
 	image_label：输出图像数组（标签图像）
 	cnt：标签数量
 -------------------------------------------------- ---------------------------*/
-void labeling(unsigned char* image_in, unsigned char* image_label, int* cnt) {
+int labeling(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_label[Y_SIZE][X_SIZE], int* cnt) {
 	int i, j, label;
 	for (i = 0; i < Y_SIZE; i++)
 		for (j = 0; j < X_SIZE; j++)
-			image_label[i * Y_SIZE + j] = image_in[i * Y_SIZE + j];
+			image_label[i][j] = image_in[i][j];
 	label = L_BASE;
 	for (i = 0; i < Y_SIZE; i++)
 		for (j = 0; j < X_SIZE; j++) {
-			if (image_label[i * Y_SIZE + j] == HIGH) {
+			if (image_label[i][j] == HIGH) {
 				if (label >= HIGH) {
 					printf("ERROR! to many labels. \n");
 					return(-1);
@@ -697,45 +703,45 @@ void labeling(unsigned char* image_in, unsigned char* image_label, int* cnt) {
 	xs, ys:    スタート位置
 	label:    ラベル番号
 -----------------------------------------------------------------------------*/
-int labelset(unsigned char* image, int xs, int ys, int label) {
+int labelset(unsigned char image[Y_SIZE][X_SIZE], int xs, int ys, int label) {
 	int i, j, cnt;
 
-	image[ys * Y_SIZE + xs] = label;
+	image[ys][xs] = label;
 	for (;;) {
 		cnt = 0;
-		for (i = 0; i < Y_SIZE; i++) {
-			for (j = 0; j < X_SIZE; j++) {
-				if (image[i * Y_SIZE + j] == label) {
-					if (image[i * Y_SIZE + j + 1] == HIGH) {
-						image[i * Y_SIZE + j + 1] = label;
+		for (i = 1; i < Y_SIZE - 1; i++) {
+			for (j = 1; j < X_SIZE - 1; j++) {
+				if (image[i][j] == label) {
+					if (image[i][j + 1] == HIGH) {
+						image[i][j + 1] = label;
 						cnt++;
 					}
-					if (image[i * Y_SIZE + j + 1] == HIGH) {
-						image[i * Y_SIZE + j + 1] = label;
+					if (image[i][j + 1] == HIGH) {
+						image[i][j + 1] = label;
 						cnt++;
 					}
-					if (image[(i - 1) * Y_SIZE + j] == HIGH) {
-						image[(i - 1) * Y_SIZE + j] = label;
+					if (image[(i - 1)][j] == HIGH) {
+						image[(i - 1)][j] = label;
 						cnt++;
 					}
-					if (image[(i - 1) * Y_SIZE + j - 1] == HIGH) {
-						image[(i - 1) * Y_SIZE + j - 1] = label;
+					if (image[(i - 1)][j - 1] == HIGH) {
+						image[(i - 1)][j - 1] = label;
 						cnt++;
 					}
-					if (image[i * Y_SIZE + j - 1] == HIGH) {
-						image[i * Y_SIZE + j - 1] = label;
+					if (image[i][j - 1] == HIGH) {
+						image[i][j - 1] = label;
 						cnt++;
 					}
-					if (image[(i + 1) * Y_SIZE + j - 1] == HIGH) {
-						image[(i + 1) * Y_SIZE + j - 1] = label;
+					if (image[(i + 1)][j - 1] == HIGH) {
+						image[(i + 1)][j - 1] = label;
 						cnt++;
 					}
-					if (image[(i + 1) * Y_SIZE + j] == HIGH) {
-						image[(i + 1) * Y_SIZE + j] = label;
+					if (image[(i + 1)][j] == HIGH) {
+						image[(i + 1)][j] = label;
 						cnt++;
 					}
-					if (image[(i + 1) * Y_SIZE + j + 1] == HIGH) {
-						image[(i + 1) * Y_SIZE + j + 1] = label;
+					if (image[(i + 1)][j + 1] == HIGH) {
+						image[(i + 1)][j + 1] = label;
 						cnt++;
 					}
 				}
@@ -747,12 +753,12 @@ int labelset(unsigned char* image, int xs, int ys, int label) {
 	}
 }
 
-void features(unsigned char* image_label_in, unsigned char* image_label_out, int cnt, float size[], float ratio[]) {
+void features(unsigned char image_label_in[Y_SIZE][X_SIZE], unsigned char image_label_out[Y_SIZE][X_SIZE], int cnt, float size[], float ratio[]) {
 	int i, j, center_x, center_y;
 	float l;
 	for (i = 0; i < Y_SIZE; i++) {
 		for (j = 0; j < X_SIZE; j++) {
-			image_label_out[i * Y_SIZE + j] = image_label_in[i * Y_SIZE + j];
+			image_label_out[i][j] = image_label_in[i][j];
 		}
 	}
 	printf("no      面積　　周囲長　　円形度　　重心(x,y)\n");
@@ -760,88 +766,92 @@ void features(unsigned char* image_label_in, unsigned char* image_label_out, int
 		size[i] = calc_size(image_label_out, i + L_BASE, &center_x, &center_y);
 		l = calc_length(image_label_out, i + L_BASE);
 		ratio[i] = 4 * PI * size[i] / (l * l);
-		image_label_out[center_y * Y_SIZE + center_x] = HIGH;
+		image_label_out[center_y][center_x] = HIGH;
 		printf("%d   %f   %f   %f   (%d,%d)\n", i, size[i], l, ratio[i], center_x, center_y);
 	}
 }
-int calc_size(unsigned char* image_label, int label, int* cx, int* cy) {
+int calc_size(unsigned char image_label[Y_SIZE][X_SIZE], int label, int* cx, int* cy) {
 	int i, j;
 	float tx, ty, total;
 	tx = 0; ty = 0; total = 0;
 	for (i = 0; i < Y_SIZE; i++)
-		for (j = 0; j < X_SIZE; j++) 
-			if (image_label[i * Y_SIZE + j] == label) {
+		for (j = 0; j < X_SIZE; j++)
+			if (image_label[i][j] == label) {
 				tx += j; ty += i; total++;
 			}
 	if (total == 0.0)return(0.0);
 	*cx = tx / total; *cy = ty / total;
-	
+
 	return(total);
 }
-int calc_length(unsigned char* image_label, int label) {
+float calc_length(unsigned char image_label[Y_SIZE][X_SIZE], int label) {
 	int i, j;
 
-	for (i = 0; i < Y_SIZE; i++) 
-		for (j = 0; j < X_SIZE; j++) 
-			if (image_label[i*Y_SIZE+j] == label) 
+	for (i = 0; i < Y_SIZE; i++) {
+		for (j = 0; j < X_SIZE; j++) {
+			if (image_label[i][j] == label) {
 				return(trace(image_label, j - 1, i));
+			}
+		}
+	}
+
 }
 
-int trace(unsigned char* image_label, int  xs, int ys) {
+float trace(unsigned char image_label[Y_SIZE][X_SIZE], int  xs, int ys) {
 	int x, y, no, vec;
 	float l;
-	l = 0; x = xs; y = ys; no = image_label[y*Y_SIZE+x + 1]; vec = 5;
+	l = 0; x = xs; y = ys; no = image_label[y][x + 1]; vec = 5;
 
 	for (;;) {
 		if (x == xs && y == ys && l != 0) {
 			return(l);
 		}
-		image_label[y*Y_SIZE+x] = HIGH;
-		switch (vec){
+		image_label[y][x] = HIGH;
+		switch (vec) {
 		case 3:
-			if (image_label[y*Y_SIZE+x + 1] != no && image_label[(y - 1)*Y_SIZE+x + 1] == no)
+			if (image_label[y][x + 1] != no && image_label[(y - 1)][x + 1] == no)
 			{
 				x = x + 1; y = y; l++;
 				vec = 0; continue;
 			}
 		case 4:
-			if (image_label[(y - 1) * Y_SIZE + x + 1] != no && image_label[(y - 1) * Y_SIZE + x] == no)
+			if (image_label[(y - 1)][x + 1] != no && image_label[(y - 1)][x] == no)
 			{
 				x = x + 1; y = y - 1; l += ROOT2;
 				vec = 1; continue;
 			}
 		case 5:
-			if (image_label[(y - 1) * Y_SIZE + x] != no && image_label[(y - 1) * Y_SIZE + x - 1] == no)
+			if (image_label[(y - 1)][x] != no && image_label[(y - 1)][x - 1] == no)
 			{
 				x = x; y = y - 1; l++;
 				vec = 2; continue;
 			}
 		case 6:
-			if (image_label[(y - 1) * Y_SIZE + x - 1] != no && image_label[y * Y_SIZE + x - 1] == no)
+			if (image_label[(y - 1)][x - 1] != no && image_label[y][x - 1] == no)
 			{
 				x = x - 1; y = y - 1; l += ROOT2;
 				vec = 3; continue;
 			}
 		case 7:
-			if (image_label[y * Y_SIZE + x - 1] != no && image_label[(y + 1) * Y_SIZE + x - 1] == no)
+			if (image_label[y][x - 1] != no && image_label[(y + 1)][x - 1] == no)
 			{
 				x = x - 1; y = y; l++;
 				vec = 4; continue;
 			}
 		case 0:
-			if (image_label[(y + 1) * Y_SIZE + x-1] != no && image_label[(y + 1) * Y_SIZE + x] == no)
+			if (image_label[(y + 1)][x - 1] != no && image_label[(y + 1)][x] == no)
 			{
 				x = x - 1; y = y + 1; l += ROOT2;
 				vec = 5; continue;
 			}
 		case 1:
-			if (image_label[(y + 1) * Y_SIZE + x] != no && image_label[(y + 1) * Y_SIZE + x+1] == no)
+			if (image_label[(y + 1)][x] != no && image_label[(y + 1)][x + 1] == no)
 			{
 				x = x; y = y + 1; l++;
 				vec = 6; continue;
 			}
 		case 2:
-			if (image_label[(y + 1) * Y_SIZE + x + 1] != no && image_label[y * Y_SIZE + x + 1] == no)
+			if (image_label[(y + 1)][x + 1] != no && image_label[y][x + 1] == no)
 			{
 				x = x + 1; y = y + 1; l += ROOT2;
 				vec = 7; continue;
@@ -849,8 +859,9 @@ int trace(unsigned char* image_label, int  xs, int ys) {
 			vec = 3;
 		}
 	}
+	return l;
 }
-void ratio_extract(unsigned char* image_label_in, unsigned char* image_label_out, int cnt, float ratio[], float ratio_min, float ratio_max) {
+void ratio_extract(unsigned char image_label_in[Y_SIZE][X_SIZE], unsigned char image_label_out[Y_SIZE][X_SIZE], int cnt, float ratio[], float ratio_min, float ratio_max) {
 	int i, j, x, y;
 	int lno[LEVEL];
 
@@ -860,16 +871,16 @@ void ratio_extract(unsigned char* image_label_in, unsigned char* image_label_out
 		}
 	for (y = 0; y < Y_SIZE; y++) {
 		for (x = 0; x < X_SIZE; x++) {
-			image_label_out[y * Y_SIZE + x] = 0;
+			image_label_out[y][x] = 0;
 			for (i = 0; i < j; i++) {
-				if (image_label_in[y * Y_SIZE + x] == lno[i]) {
-					image_label_out[y * Y_SIZE + x] = image_label_in[y * Y_SIZE + x];
+				if (image_label_in[y][x] == lno[i]) {
+					image_label_out[y][x] = image_label_in[y][x];
 				}
 			}
 		}
 	}
 }
-void size_extract(unsigned char* image_label_in, unsigned char* image_label_out, int cnt, float size[], float size_min, float size_max) {
+void size_extract(unsigned char image_label_in[Y_SIZE][X_SIZE], unsigned char image_label_out[Y_SIZE][X_SIZE], int cnt, float size[], float size_min, float size_max) {
 	int i, j, x, y;
 	int lno[LEVEL];
 
@@ -880,33 +891,37 @@ void size_extract(unsigned char* image_label_in, unsigned char* image_label_out,
 	}
 	for (y = 0; y < Y_SIZE; y++) {
 		for (x = 0; x < X_SIZE; x++) {
-			image_label_out[y * Y_SIZE + x] = 0;
+			image_label_out[y][x] = 0;
 			for (i = 0; i < j; i++) {
-				if (image_label_in[y * Y_SIZE + x] == lno[i]) {
-					image_label_out[y * Y_SIZE + x] = image_label_in[y * Y_SIZE + x];
+				if (image_label_in[y][x] == lno[i]) {
+					image_label_out[y][x] = image_label_in[y][x];
 				}
 			}
 		}
 	}
 }
-void gradient(unsigned char* image_in, unsigned char* image_out, float amp1) {
-	static int cx[9] = { 0,0,0,0,1,0,0,0,-1 };
-	static int cy[9] = { 0,0,0,0,0,1,0,-1,0 };
+void gradient(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE], float amp1) {
+	static int cx[9] = { 0, 0, 0,
+						 0, 1, 0,
+						 0, 0, -1 };
+	static int cy[9] = { 0, 0, 0,
+						 0, 0, 1,
+						 0,-1, 0 };
 	int d[9];
 	int i, j, dat;
 	float xx, yy, zz;
 
 	for (i = 1; i < Y_SIZE - 1; i++) {
 		for (j = 1; j < X_SIZE - 1; j++) {
-			d[0] = image_in[(i - 1)*Y_SIZE + j - 1];
-			d[1] = image_in[(i - 1) * Y_SIZE + j];
-			d[2] = image_in[(i - 1) * Y_SIZE + j + 1];
-			d[3] = image_in[i * Y_SIZE + j - 1];
-			d[4] = image_in[i * Y_SIZE + j];
-			d[5] = image_in[i * Y_SIZE + j + 1];
-			d[6] = image_in[(i + 1) * Y_SIZE + j - 1];
-			d[7] = image_in[(i + 1) * Y_SIZE + j];
-			d[8] = image_in[(i + 1) * Y_SIZE + j + 1];
+			d[0] = image_in[(i - 1)][j - 1];
+			d[1] = image_in[(i - 1)][j];
+			d[2] = image_in[(i - 1)][j + 1];
+			d[3] = image_in[i][j - 1];
+			d[4] = image_in[i][j];
+			d[5] = image_in[i][j + 1];
+			d[6] = image_in[(i + 1)][j - 1];
+			d[7] = image_in[(i + 1)][j];
+			d[8] = image_in[(i + 1)][j + 1];
 			xx = cx[0] * d[0] + cx[1] * d[1] + cx[2] * d[2] + cx[3] * d[3] + cx[4] * d[4] + cx[5] * d[5] + cx[6] * d[6] + cx[7] * d[7] + cx[8] * d[8];
 			yy = cy[0] * d[0] + cy[1] * d[1] + cy[2] * d[2] + cy[3] * d[3] + cy[4] * d[4] + cy[5] * d[5] + cy[6] * d[6] + cy[7] * d[7] + cy[8] * d[8];
 			zz = amp1 * (float)sqrt((float)(xx * xx + yy * yy));
@@ -915,11 +930,11 @@ void gradient(unsigned char* image_in, unsigned char* image_out, float amp1) {
 			if (dat > 255) {
 				dat = 255;
 			}
-			image_out[i*Y_SIZE+j] = (char)(dat);
+			image_out[i][j] = (char)(dat);
 		}
 	}
 }
-void laplacian(unsigned char* image_in, unsigned char* image_out, float amp1) {
+void laplacian(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE], float amp1) {
 	static int c[9] = { -1,-1,-1,-1,8,-1,-1,-1,-1 };
 	int d[9];
 	int i, j, dat;
@@ -927,15 +942,15 @@ void laplacian(unsigned char* image_in, unsigned char* image_out, float amp1) {
 
 	for (i = 1; i < Y_SIZE - 1; i++) {
 		for (j = 1; j < X_SIZE - 1; j++) {
-			d[0] = image_in[(i - 1) * Y_SIZE + j - 1];
-			d[1] = image_in[(i - 1) * Y_SIZE + j];
-			d[2] = image_in[(i - 1) * Y_SIZE + j + 1];
-			d[3] = image_in[i * Y_SIZE + j - 1];
-			d[4] = image_in[i * Y_SIZE + j];
-			d[5] = image_in[i * Y_SIZE + j + 1];
-			d[6] = image_in[(i + 1) * Y_SIZE + j - 1];
-			d[7] = image_in[(i + 1) * Y_SIZE + j];
-			d[8] = image_in[(i + 1) * Y_SIZE + j + 1];
+			d[0] = image_in[(i - 1)][j - 1];
+			d[1] = image_in[(i - 1)][j];
+			d[2] = image_in[(i - 1)][j + 1];
+			d[3] = image_in[i][j - 1];
+			d[4] = image_in[i][j];
+			d[5] = image_in[i][j + 1];
+			d[6] = image_in[(i + 1)][j - 1];
+			d[7] = image_in[(i + 1)][j];
+			d[8] = image_in[(i + 1)][j + 1];
 			z = c[0] * d[0] + c[1] * d[1] + c[2] * d[2] + c[3] * d[3] + c[4] * d[4] + c[5] * d[5] + c[6] * d[6] + c[7] * d[7] + c[8] * d[8];
 			zz = amp1 * z;
 			dat = (int)(zz);
@@ -945,26 +960,26 @@ void laplacian(unsigned char* image_in, unsigned char* image_out, float amp1) {
 			if (dat > 255) {
 				dat = 255;
 			}
-			image_out[i * Y_SIZE + j] = (char)(dat);
+			image_out[i][j] = (char)(dat);
 		}
 	}
 }
-void template1(unsigned char* image_in, unsigned char* image_out, float amp1) {
+void template1(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE], float amp1) {
 	int d0, d1, d2, d3, d4, d5, d6, d7, d8;
 	int i, j, k, dat, max;
 	int m[8];
 	float zz;
 	for (i = 1; i < Y_SIZE - 1; i++) {
 		for (j = 1; j < X_SIZE - 1; j++) {
-			d0 = image_in[(i - 1) * Y_SIZE + j - 1];
-			d1 = image_in[(i - 1) * Y_SIZE + j];
-			d2 = image_in[(i - 1) * Y_SIZE + j + 1];
-			d3 = image_in[i * Y_SIZE + j - 1];
-			d4 = image_in[i * Y_SIZE + j];
-			d5 = image_in[i * Y_SIZE + j + 1];
-			d6 = image_in[(i + 1) * Y_SIZE + j - 1];
-			d7 = image_in[(i + 1) * Y_SIZE + j];
-			d8 = image_in[(i + 1) * Y_SIZE + j + 1];
+			d0 = image_in[(i - 1)][j - 1];
+			d1 = image_in[(i - 1)][j];
+			d2 = image_in[(i - 1)][j + 1];
+			d3 = image_in[i][j - 1];
+			d4 = image_in[i][j];
+			d5 = image_in[i][j + 1];
+			d6 = image_in[(i + 1)][j - 1];
+			d7 = image_in[(i + 1)][j];
+			d8 = image_in[(i + 1)][j + 1];
 
 			m[0] = d0 + d1 + d2 + d3 - 2 * d4 + d5 - d6 - d7 - d8;
 			m[1] = d0 + d1 + d2 + d3 - 2 * d4 - d5 + d6 - d7 - d8;
@@ -985,32 +1000,32 @@ void template1(unsigned char* image_in, unsigned char* image_out, float amp1) {
 			if (dat > 255) {
 				dat = 255;
 			}
-			image_out[i * Y_SIZE + j] = (char)(dat);
+			image_out[i][j] = (char)(dat);
 		}
 	}
 }
 
-void smooth(unsigned char* image_in, unsigned char* image_out, int which) {
+void smooth(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE], int which) {
 	int i, j;
 	unsigned char c[9];
 
 	for (i = 1; i < Y_SIZE - 1; i++) {
 		for (j = 1; j < X_SIZE - 1; j++) {
-			c[0] = image_in[(i - 1) * Y_SIZE + j - 1];
-			c[1] = image_in[(i - 1) * Y_SIZE + j];
-			c[2] = image_in[(i - 1) * Y_SIZE + j + 1];
-			c[3] = image_in[i * Y_SIZE + j - 1];
-			c[4] = image_in[i * Y_SIZE + j];
-			c[5] = image_in[i * Y_SIZE + j + 1];
-			c[6] = image_in[(i + 1) * Y_SIZE + j - 1];
-			c[7] = image_in[(i + 1) * Y_SIZE + j];
-			c[8] = image_in[(i + 1) * Y_SIZE + j + 1];
+			c[0] = image_in[(i - 1)][j - 1];
+			c[1] = image_in[(i - 1)][j];
+			c[2] = image_in[(i - 1)][j + 1];
+			c[3] = image_in[i][j - 1];
+			c[4] = image_in[i][j];
+			c[5] = image_in[i][j + 1];
+			c[6] = image_in[(i + 1)][j - 1];
+			c[7] = image_in[(i + 1)][j];
+			c[8] = image_in[(i + 1)][j + 1];
 			switch (which) {
 			case 1:
-				image_out[i * Y_SIZE + j] = mean(c);
+				image_out[i][j] = mean(c);
 				break;
 			case 2:
-				image_out[i * Y_SIZE + j] = median(c);
+				image_out[i][j] = median(c);
 				break;
 			}
 		}
@@ -1038,46 +1053,46 @@ int median(unsigned char c[]) {
 	return(c[4]);
 }
 
-void amplify(unsigned char* image_in, unsigned char* image_out, int n) {
+void amplify(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE], int n) {
 	int i, j, nf;
 	for (i = 0; i < Y_SIZE; i++) {
 		{
 			for (j = 0; j < X_SIZE; j++) {
-				nf = (int)image_in[i * Y_SIZE + j] * n;
+				nf = (int)image_in[i][j] * n;
 				if (nf > HIGH)nf = HIGH;
-				image_out[i * Y_SIZE + j] = (unsigned char)nf;
+				image_out[i][j] = (unsigned char)nf;
 			}
 		}
 	}
 }
-void range(unsigned char* image_in, int* fmax, int* fmin) {
+void range(unsigned char image_in[Y_SIZE][X_SIZE], int* fmax, int* fmin) {
 	int i, j, nf;
 	*fmax = LOW;
 	*fmin = HIGH;
 	for (i = 0; i < Y_SIZE; i++) {
 		for (j = 0; j < X_SIZE; j++) {
-			nf = (int)image_in[i * Y_SIZE + j];
+			nf = (int)image_in[i][j];
 			if (nf > *fmax) *fmax = nf;
 			if (nf < *fmin)*fmin = nf;
 		}
 	}
 }
 
-void enpand(unsigned char* image_in, unsigned char* image_out, int fmax, int  fmin) {
+void enpand(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE], int fmax, int  fmin) {
 	int i, j;
 	float d;
 
 	for (i = 0; i < Y_SIZE; i++) {
 		for (j = 0; j < X_SIZE; j++) {
 			d = (float)(HIGH - LOW) / (float)(fmax - fmin)
-				* ((int)image_in[i * Y_SIZE + j] - fmin) + LOW;
-			if (d > HIGH) image_out[i * Y_SIZE + j] = HIGH;
-			else if (d < LOW) image_out[i * Y_SIZE + j] = LOW;
-			else image_out[i * Y_SIZE + j] = d;
+				* ((int)image_in[i][j] - fmin) + LOW;
+			if (d > HIGH) image_out[i][j] = HIGH;
+			else if (d < LOW) image_out[i][j] = LOW;
+			else image_out[i][j] = d;
 		}
 	}
 }
-void plane(unsigned char* image_in, unsigned char* image_out, int hist[]) {
+void plane(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE], int hist[]) {
 	int i, j, iy, jx, sum;
 	int delt;
 	int low;
@@ -1089,7 +1104,7 @@ void plane(unsigned char* image_in, unsigned char* image_out, int hist[]) {
 	low = HIGH;
 	for (i = 0; i < Y_SIZE; i++) {
 		for (j = 0; j < X_SIZE; j++) {
-			image_out[i * Y_SIZE + j] = 0;
+			image_out[i][j] = 0;
 		}
 	}
 
@@ -1101,29 +1116,30 @@ void plane(unsigned char* image_in, unsigned char* image_out, int hist[]) {
 		if (low < high) {
 			for (iy = 0; iy < Y_SIZE; iy++) {
 				for (jx = 0; jx < X_SIZE; jx++) {
-					if (((int)image_in[iy * Y_SIZE + jx] >= low + 1) & ((int)image_in[iy * Y_SIZE + jx] <= high)) {
-						image_out[iy * Y_SIZE + jx] = (unsigned char)i;
+					if (((int)image_in[iy][jx] >= low + 1) & ((int)image_in[iy][jx] <= high)) {
+						image_out[iy][jx] = (unsigned char)i;
 					}
 				}
 			}
-			for (j = 0; j < delt; j++) {
-				image_out[buf[j].y * Y_SIZE + buf[j].x] = (unsigned char)i;
-				image_in[buf[j].y * Y_SIZE + buf[j].x] = (unsigned char)(low + 1);
-			}
-
-
-			hist[low] = hist[low] - delt;
-			high = low;
 		}
+		for (j = 0; j < delt; j++) {
+			image_out[buf[j].y][buf[j].x] = (unsigned char)i;
+			image_in[buf[j].y][buf[j].x] = (unsigned char)(low + 1);
+		}
+
+
+		hist[low] = hist[low] - delt;
+		high = low;
+		
 	}
 }
-void sort(unsigned char* image_in, struct xyw data[], int level) {
+void sort(unsigned char image_in[Y_SIZE][X_SIZE], struct xyw data[], int level) {
 	int i, j, inum, wt;
 	struct xyw temp;
 	inum = 0;
 	for (i = 0; i < Y_SIZE; i++) {
 		for (j = 0; j < X_SIZE; j++) {
-			if ((int)image_in[i * Y_SIZE + j] == level) {
+			if ((int)image_in[i][j] == level) {
 				weight(image_in, i, j, &wt);
 				data[inum].y = i;
 				data[inum].x = j;
@@ -1147,7 +1163,7 @@ void sort(unsigned char* image_in, struct xyw data[], int level) {
 		}
 	}
 }
-void weight(unsigned char* image_in, int i, int j, int* wt) {
+void weight(unsigned char image_in[Y_SIZE][X_SIZE], int i, int j, int* wt) {
 	int dim, djm;
 	int dip, djp;
 	int k, d[8];
@@ -1169,24 +1185,23 @@ void weight(unsigned char* image_in, int i, int j, int* wt) {
 		djp = j;
 	}
 
-	d[0] = (int)image_in[dim * Y_SIZE + djm];
-	d[1] = (int)image_in[dim * Y_SIZE + j];
-	d[2] = (int)image_in[dim * Y_SIZE + djp];
-	d[3] = (int)image_in[i * Y_SIZE + djm];
-	d[4] = (int)image_in[i * Y_SIZE + djp];
-	d[5] = (int)image_in[dip * Y_SIZE + djm];
-	d[6] = (int)image_in[dip * Y_SIZE + j];
-	d[7] = (int)image_in[dip * Y_SIZE + djp];
+	d[0] = (int)image_in[dim][djm];
+	d[1] = (int)image_in[dim][j];
+	d[2] = (int)image_in[dim][djp];
+	d[3] = (int)image_in[i][djm];
+	d[4] = (int)image_in[i][djp];
+	d[5] = (int)image_in[dip][djm];
+	d[6] = (int)image_in[dip][j];
+	d[7] = (int)image_in[dip][djp];
 	for (k = 0; k < 8; k++) {
 		*wt = *wt + d[i];
 	}
 }
-void scale_near(unsigned char* image_in, unsigned char* image_out, float zx, float zy) {
+void scale_near(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE], float zx, float zy) {
 	int i, j, m, n;
-	float x, y, p, q;
+	//float x, y, p, q;
 	int xs = X_SIZE / 2;
 	int ys = Y_SIZE / 2;
-	int d;
 
 	for (i = -ys; i < ys; i++) {
 		for (j = -xs; j < xs; j++) {
@@ -1203,15 +1218,15 @@ void scale_near(unsigned char* image_in, unsigned char* image_out, float zx, flo
 				n = i / zy - 0.5;
 			}
 			if ((m >= -ys) && (m < ys) && (n >= -xs) && (n < xs)) {
-				image_out[(i + ys) * Y_SIZE + j + xs] = image_in[(m + ys) * Y_SIZE + n + xs];
+				image_out[(i + ys)][j + xs] = image_in[(m + ys)][n + xs];
 			}
 			else {
-				image_out[(i + ys) * Y_SIZE + j + xs] = 0;
+				image_out[(i + ys)][j + xs] = 0;
 			}
 		}
 	}
 }
-void scale(unsigned char* image_in, unsigned char* image_out, float zx, float zy) {
+void scale(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE], float zx, float zy) {
 	int i, j, m, n;
 	float x, y, p, q;
 	int xs = X_SIZE / 2;
@@ -1235,8 +1250,8 @@ void scale(unsigned char* image_in, unsigned char* image_out, float zx, float zy
 			}
 			q = y - m;
 			p = x - n;
-			if ((m >= -ys) && (m < ys) && (n >= -xs) && (n < xs)){
-				d = (1.0 - q) * ((1.0 - p) * image_in[(m + ys) * Y_SIZE + n + xs] + p * image_in[(m + ys) * Y_SIZE + n + 1 + xs]) + q * ((1.0 - p) * image_in[(m + 1 + ys) * Y_SIZE + n + xs] + p * image_in[(m + 1 + ys) * Y_SIZE + n + 1 + xs]);
+			if ((m >= -ys) && (m < ys) && (n >= -xs) && (n < xs)) {
+				d = (1.0 - q) * ((1.0 - p) * image_in[(m + ys)][n + xs] + p * image_in[(m + ys)][n + 1 + xs]) + q * ((1.0 - p) * image_in[(m + 1 + ys)][n + xs] + p * image_in[(m + 1 + ys)][n + 1 + xs]);
 			}
 			else {
 				d = 0;
@@ -1247,11 +1262,11 @@ void scale(unsigned char* image_in, unsigned char* image_out, float zx, float zy
 			if (d > 255) {
 				d = 255;
 			}
-			image_out[(i + ys) * Y_SIZE + j + xs] = d;
+			image_out[(i + ys)][j + xs] = d;
 		}
 	}
 }
-void rotation(unsigned char* image_in, unsigned char* image_out, float deg) {
+void rotation(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE], float deg) {
 	int i, j, m, n;
 	float x, y, p, q;
 	double r;
@@ -1282,7 +1297,7 @@ void rotation(unsigned char* image_in, unsigned char* image_out, float deg) {
 			q = y - m;
 			p = x - n;
 			if ((m >= -ys) && (m < ys) && (n >= -xs) && (n < xs)) {
-				d = (1.0 - q) * ((1.0 - p) * image_in[(m + ys) * Y_SIZE + n + xs] + p * image_in[(m + ys) * Y_SIZE + n + xs]) + q * ((1.0 - p) * image_in[(m + 1 + ys) * Y_SIZE + n + xs] + p * image_in[(m + 1 + ys) * Y_SIZE + n + 1 + xs]);
+				d = (1.0 - q) * ((1.0 - p) * image_in[(m + ys)][n + xs] + p * image_in[(m + ys)][n + xs]) + q * ((1.0 - p) * image_in[(m + 1 + ys)][n + xs] + p * image_in[(m + 1 + ys)][n + 1 + xs]);
 			}
 			else {
 				d = 0;
@@ -1293,11 +1308,11 @@ void rotation(unsigned char* image_in, unsigned char* image_out, float deg) {
 			if (d > 255) {
 				d = 255;
 			}
-			image_out[(i + ys) * Y_SIZE + j + xs] = d;
+			image_out[(i + ys)][j + xs] = d;
 		}
 	}
 }
-void shift(unsigned char* image_in, unsigned char* image_out, float px, float py) {
+void shift(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE], float px, float py) {
 	int i = 0;
 	int	j = 0;
 	int	m, n;
@@ -1315,7 +1330,7 @@ void shift(unsigned char* image_in, unsigned char* image_out, float px, float py
 			q = y - m;
 			p = x - n;
 			if ((m >= -ys) && (m < ys) && (n >= -xs) && (n < xs)) {
-				d = (1.0 - q) * ((1.0 - p) * image_in[(m + ys) * Y_SIZE + n + xs] + p * image_in[(m + ys) * Y_SIZE + n + 1 + xs]) + q * ((1.0 - p) * image_in[(m + 1 + ys) * Y_SIZE + n + xs] + p * image_in[(m + 1 + ys) * Y_SIZE + n + 1 + xs]);
+				d = (1.0 - q) * ((1.0 - p) * image_in[(m + ys)][n + xs] + p * image_in[(m + ys)][n + 1 + xs]) + q * ((1.0 - p) * image_in[(m + 1 + ys)][n + xs] + p * image_in[(m + 1 + ys)][n + 1 + xs]);
 			}
 			else {
 				d = 0;
@@ -1327,11 +1342,11 @@ void shift(unsigned char* image_in, unsigned char* image_out, float px, float py
 			if (d > 255) {
 				d = 255;
 			}
-			image_out[(i + ys) * Y_SIZE + j + xs] = d;
+			image_out[(i + ys)][j + xs] = d;
 		}
 	}
 }
-void affine(unsigned char* image_in, unsigned char* image_out, float deg, float zx, float zy, float px, float py) {
+void affine(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE], float deg, float zx, float zy, float px, float py) {
 	int i, j, m, n;
 	float x, y, u, v, p, q;
 	float r;
@@ -1360,19 +1375,19 @@ void affine(unsigned char* image_in, unsigned char* image_out, float deg, float 
 			}
 			else {
 				n = x - 1;
-
-				q = y - m;
-				p = x - n;
 			}
+			q = y - m;
+			p = x - n;
+
 			if ((m >= -ys) && (m < ys) && (n >= -xs) && (n < xs)) {
 
-				d = (1.0 - q) * ((1.0 - p) * image_in[(m + ys) * Y_SIZE + n + xs] + p * image_in[(m + ys) * Y_SIZE + n + 1 + xs]) + q * ((1.0 - p) * image_in[(m + 1 + ys) * Y_SIZE + n + xs] + p * image_in[(m + 1 + ys) * Y_SIZE + n + 1 + xs]);
+				d = (1.0 - q) * ((1.0 - p) * image_in[(m + ys)][n + xs] + p * image_in[(m + ys)][n + 1 + xs]) + q * ((1.0 - p) * image_in[(m + 1 + ys)][n + xs] + p * image_in[(m + 1 + ys)][n + 1 + xs]);
 			}
 			else {
 				d = 0;
 				if (d < 0)d = 0;
 				if (d > 255)d = 255;
-				image_out[(i + ys) * Y_SIZE + j + xs] = d;
+				image_out[(i + ys)][j + xs] = d;
 
 
 			}
@@ -1380,7 +1395,7 @@ void affine(unsigned char* image_in, unsigned char* image_out, float deg, float 
 		}
 	}
 }
-void perspect(unsigned char* image_in, unsigned char* image_out, float ax, float ay, float px, float py, float pz, float rz, float rx, float ry, float v, float s) {
+void perspect(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE], float ax, float ay, float px, float py, float pz, float rz, float rx, float ry, float v, float s) {
 	int i, j, m, n;
 	float x, y, w, p, q;
 	float k[9];
@@ -1407,19 +1422,20 @@ void perspect(unsigned char* image_in, unsigned char* image_out, float ax, float
 			}
 			else {
 				n = x - 1;
-
-				q = y - m;
-				p = x - n;
 			}
+
+			q = y - m;
+			p = x - n;
+
 			if ((m >= -ys) && (m < ys) && (n >= -xs) && (n < xs)) {
 
-				d = (1.0 - q) * ((1.0 - p) * image_in[(m + ys) * Y_SIZE + n + xs] + p * image_in[(m + ys) * Y_SIZE + n + 1 + xs]) + q * ((1.0 - p) * image_in[(m + 1 + ys) * Y_SIZE + n + xs] + p * image_in[(m + 1 + ys) * Y_SIZE + n + 1 + xs]);
+				d = (1.0 - q) * ((1.0 - p) * image_in[(m + ys)][n + xs] + p * image_in[(m + ys)][n + 1 + xs]) + q * ((1.0 - p) * image_in[(m + 1 + ys)][n + xs] + p * image_in[(m + 1 + ys)][n + 1 + xs]);
 			}
 			else {
 				d = 0;
 				if (d < 0)d = 0;
 				if (d > 255)d = 255;
-				image_out[(i + ys) * Y_SIZE + j + xs] = d;
+				image_out[(i + ys)][j + xs] = d;
 			}
 
 
@@ -1429,7 +1445,6 @@ void perspect(unsigned char* image_in, unsigned char* image_out, float ax, float
 void param_pers(float k[], float a, float b, float x0, float y0, float z0, float z, float x, float y, float t, float s) {
 	float l[4][4], m[4][4], n[4][4], k1, k2, k3, k4, k5, k6, k7, k8, k9;
 	double u, v, w;
-	int i;
 	int xs = X_SIZE / 2;
 	int ys = Y_SIZE / 2;
 
@@ -1470,42 +1485,45 @@ void param_pers(float k[], float a, float b, float x0, float y0, float z0, float
 	printf("f= %f\n", k[8]);
 	*/
 }
-void matrix(float l[4], float m[4], float n[4]) {
+void matrix(float l[4][4], float m[4][4], float n[4][4])
+{
 	int i, j, k;
 	float p;
 	for (i = 0; i < 4; i++) {
 		for (j = 0; j < 4; j++) {
 			p = 0;
-			for (k = 0; k < 4; k++) p = p + l[i * 4 + k] * m[k * 4 + j];
-			n[i * 4 + j] = p;
+			for (k = 0; k < 4; k++) p = p + l[i][k] * m[k][j];
+			n[i][j] = p;
 		}
 	}
 }
-void  masking(unsigned char* image_in, unsigned char* image_out, unsigned char image_mask[]) {
-	int i;
-	for (i = 0; i < Y_SIZE * X_SIZE; i++) {
-		if (image_mask[i] == HIGH) {
-			image_out[i] = image_in[i];
-		}
-		else {
-			image_out[i] = 0;
+void  masking(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE], unsigned char image_mask[Y_SIZE][X_SIZE])
+{
+	int i, j;
+	for (i = 0; i < Y_SIZE; i++) {
+		for (j = 0; j < X_SIZE; j++) {
+			if (image_mask[i][j] == HIGH) {
+				image_out[i][j] = image_in[i][j];
+			}
+			else {
+				image_out[i][j] = 0;
+			}
 		}
 	}
 }
-void text_clear() {
-	printf("\0333[2J)");
-}
-void gray_display(unsigned char image_in[], int xsize, int ysize, int xpos, int ypos) {
-	int x, y;
-	for (y = 0; y < ysize; y++)
-		for (x = 0; x < xsize; x++)
-			piel_write(xpos + x, ypos + y, (int)image_in[xsize * y + x] / 16);
+
+void gray_display(unsigned char image_in[Y_SIZE][X_SIZE], int xsize, int ysize, int xpos, int ypos)
+{
+	//int x, y;
+	//for (y = 0; y < ysize; y++)
+	//	for (x = 0; x < xsize; x++)
+	//		piel_write(xpos + x, ypos + y, (int)image_in[xsize * y + x] / 16);
 }
 void piel_write(int x, int y, int pale_no)
 {
 #if 0
-//	char far* p[4];
-	char *p[4];
+	//	char far* p[4];
+	char* p[4];
 	int i, posi;
 	static char bit[4] = { 1,2,4,8 };
 	static char bit_mask[8] = { 0x80,0x40,0x20,0x10,8,4,2,1 };
@@ -1513,10 +1531,10 @@ void piel_write(int x, int y, int pale_no)
 		pale_no = 15;
 	}
 	posi = x % 8;
-//	p[0] = (char far*)(0xa8000000 + y * 80 + x / 8);
-//	p[1] = (char far*)(0xb0000000 + y * 80 + x / 8);
-//	p[2] = (char far*)(0xb8000000 + y * 80 + x / 8);
-//	p[3] = (char far*)(0xxe0000000 + y * 80 + x / 8);
+	//	p[0] = (char far*)(0xa8000000 + y * 80 + x / 8);
+	//	p[1] = (char far*)(0xb0000000 + y * 80 + x / 8);
+	//	p[2] = (char far*)(0xb8000000 + y * 80 + x / 8);
+	//	p[3] = (char far*)(0xxe0000000 + y * 80 + x / 8);
 	p[0] = (char*)(0xa8000000 + y * 80 + x / 8);
 	p[1] = (char*)(0xb0000000 + y * 80 + x / 8);
 	p[2] = (char*)(0xb8000000 + y * 80 + x / 8);
