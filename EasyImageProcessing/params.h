@@ -40,6 +40,7 @@ void amplify(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_S
 void range(unsigned char image_in[Y_SIZE][X_SIZE], int* fmax, int* fmin);
 void enpand(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE], int fmax, int  fmin);
 void plane(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE], int hist[]);
+void histsmooth2(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE], int hist[]);
 void sort(unsigned char image_in[Y_SIZE][X_SIZE], struct xyw data[], int level);
 void weight(unsigned char image_in[Y_SIZE][X_SIZE], int i, int j, int* wt);
 void scale_near(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE], float zx, float zy);
