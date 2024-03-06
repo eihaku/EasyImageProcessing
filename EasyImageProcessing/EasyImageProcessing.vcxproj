@@ -127,6 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="comm.c" />
     <ClCompile Include="EasyImageProcessing.c" />
   </ItemGroup>
   <ItemGroup>
