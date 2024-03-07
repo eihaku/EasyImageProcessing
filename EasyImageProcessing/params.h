@@ -6,6 +6,11 @@
 #define HIGH        255
 #define LOW         0
 #define LEVEL       256
+#define X_EXP 8 /* X_EXP = log2(X_SIZE)  */
+#define Y_EXP 8 /* Y_EXP = log2(Y_SIZE)  */
+#define R 0
+#define G 1
+#define B 2
 
 #define X_IN_POS	280
 #define Y_IN_POS	50
@@ -21,7 +26,8 @@
 #define MAX_X_SIZE 640
 #define BITMAP_HEAD_SIZE         0x036
 #define BITMAP_COLORPALETTE_SIZE 0x400
-
+#define    OPT        1     /*　OPT = 1　光学的ＤＦＴ（直流分が中央）    */
+							/*　OPT = 0　通常のＤＦＴ（直流分が左端）    */
 
 typedef unsigned char  uchar;
 typedef unsigned short ushort;
@@ -127,6 +133,17 @@ float calc_length(unsigned char image_label[Y_SIZE][X_SIZE], int label);
 float trace(unsigned char image_label[Y_SIZE][X_SIZE], int  xs, int ys);
 void matrix(float l[4][4], float m[4][4], float n[4][4]);
 void param_pers(float k[], float a, float b, float x0, float y0, float z0, float z, float x, float y, float t, float s);
+void fft1core(float a_rl[], float a_im[], int length,int ex, float sin_tbl[], float cos_tbl[], float buf[]);
+void cstb(int length, int inv, float sin_tbl[], float cos_tbl[]);
+void birv(float a[], int length, int ex, float b[]);
+void fft1core(float a_rl[], float a_im[], int length,int ex, float sin_tbl[], float cos_tbl[], float buf[]);
+void cstb(int length, int inv, float sin_tbl[], float cos_tbl[]);
+void rvmtx1(float a[Y_SIZE][X_SIZE], float b[X_SIZE][Y_SIZE],int xsize, int ysize);
+void rvmtx2(float a[X_SIZE][Y_SIZE], float b[Y_SIZE][X_SIZE],int xsize, int ysize);
+int fft2(float a_rl[Y_SIZE][X_SIZE], float a_im[Y_SIZE][X_SIZE], int inv);
+int fftimage(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE]);
+int fft1(float a_rl[], float a_im[], int ex, int inv);
+
 //void piel_write(int x, int y, int pale_no);
 //void graph_clear1();
 //void outp(int a, int b);

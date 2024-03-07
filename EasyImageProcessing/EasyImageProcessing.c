@@ -18,6 +18,11 @@ unsigned char image_in[Y_SIZE][X_SIZE];
 unsigned char image_out[Y_SIZE][X_SIZE];
 unsigned char image_work[Y_SIZE][X_SIZE];
 unsigned char image_hist[HIST_Y_SIZE][HIST_X_SIZE];
+unsigned char a_rl[Y_SIZE][X_SIZE];
+unsigned char a_im[Y_SIZE][X_SIZE];
+unsigned char b_rl[Y_SIZE][X_SIZE];
+unsigned char b_im[Y_SIZE][X_SIZE];
+
 long	hist[LEVEL];
 float	ratio[Y_SIZE], size[X_SIZE];
 
@@ -29,7 +34,7 @@ void main()
 	int eflg = 1;
 	char source[80];
 	char destin[80];
-	float a, b, x0, y0, z0, deg, xr, yr, zr, v, scr;
+	float a, b, x0, y0, z0, deg, xr, yr, zr, v, scr,ex,inv;
 	float amp1;
 	float ratio_min, ratio_max;
 	float size_min, size_max;
@@ -53,6 +58,7 @@ void main()
 		printf("８：フィルタ（３ｘ３）\n");
 		printf("９：濃度変換\n");
 		printf("１０：機何学変換\n");
+		printf("１1：周波数で処理する\n");
 		printf("９１：出力画像　＝＞入力画像のコピー\n");
 		printf("９２：出力画像　＝＞ワーク画像のコピー\n");
 		printf("９３：ワーク画像　＝＞入力画像のコピー\n");
@@ -235,6 +241,33 @@ void main()
 				perspect(image_in, image_out, a, b, x0, y0, z0, zr, xr, yr, v, scr);
 			}
 			//display(*image_out, X_SIZE, Y_SIZE, X_OUT_POS, Y_OUT_POS);
+			break;
+		case 11:
+			printf("1: 1次元のFFTを行う");
+			printf("2：2次元のFFTを行う");
+			printf("3: 2次元FFTの結果を画像化する");
+			printf("4：2次元FFTを使ってフィルタ処理する");
+			scanf("%d", &i);
+			if (i == 1) {
+				printf("データ個数   ***");
+				scanf("%f", &ex);
+				printf(" 1: ＤＦＴ，-1: 逆ＤＦＴ   ***");
+				scanf("%f ", &inv);
+				fft1(a_rl, a_im, ex, inv);
+			}
+			if (i == 2) {
+				printf(" 1: ＤＦＴ，-1: 逆ＤＦＴ   ***");
+				scanf("%f ", &inv);
+				fft2(a_rl, a_im, inv);
+			}
+			if (i == 3) {
+				fftimage(image_in, image_out);
+			}
+			if (i == 4) {
+				printf("通過帯域 a-b  ***");
+				scanf("%f%f", &a, &b);
+				fftfilter(image_in, image_out, a, b);
+			}
 			break;
 		case 91: image_copy(image_out, image_in);
 			//display(*image_in, X_SIZE, Y_SIZE, X_IN_POS, Y_IN_POS);
