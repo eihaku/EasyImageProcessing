@@ -18,6 +18,8 @@ unsigned char image_in[Y_SIZE][X_SIZE];
 unsigned char image_out[Y_SIZE][X_SIZE];
 unsigned char image_work[Y_SIZE][X_SIZE];
 unsigned char image_hist[HIST_Y_SIZE][HIST_X_SIZE];
+unsigned char image_key[3][Y_SIZE][X_SIZE];
+
 unsigned char a_rl[Y_SIZE][X_SIZE];
 unsigned char a_im[Y_SIZE][X_SIZE];
 unsigned char b_rl[Y_SIZE][X_SIZE];
@@ -29,7 +31,7 @@ float	ratio[Y_SIZE], size[X_SIZE];
 
 void main()
 {
-	int i, j, k;
+	int i, j, k,n, tg1, tg2;
 	int thres, mode;
 	int eflg = 1;
 	char source[80];
@@ -59,6 +61,7 @@ void main()
 		printf("９：濃度変換\n");
 		printf("１０：機何学変換\n");
 		printf("１1：周波数で処理する\n");
+		printf("１2：色で抜き出す\n");
 		printf("９１：出力画像　＝＞入力画像のコピー\n");
 		printf("９２：出力画像　＝＞ワーク画像のコピー\n");
 		printf("９３：ワーク画像　＝＞入力画像のコピー\n");
@@ -269,6 +272,41 @@ void main()
 				fftfilter(image_in, image_out, a, b);
 			}
 			break;
+		case 12:
+			printf(" 1:ハードキーの生成\n");
+			printf(" 2:ソフトキーの生成\n");
+			printf(" 3:ハードキーによる合成\n");
+			printf(" 4:ソフトキーで合成 ? ");
+			scanf("%d", &n);
+			switch (n) {
+			case 1:
+				printf("  Threshold ?  ");
+				scanf("%d", &tg1);
+				hard_mask(image_in[0], image_in[1], image_in[2], image_key[0], tg1);
+				//array_to_array(image_key[0], image_key[1]);
+				//array_to_array(image_key[0], image_key[2]);
+
+				break;
+			case 2:
+				printf("  Threshold (min,max) ?  ");
+				scanf("%d %d", &tg1, &tg2);
+				soft_mask(image_in[0], image_in[1], image_in[2],image_key[0], tg2, tg1);
+				//array_to_array(image_key[0], image_key[1]);
+				//array_to_array(image_key[0], image_key[2]);
+				break;
+			case 3:
+				synth(image_in[0], image_in[1], image_in[2],
+					image_work[0], image_work[1], image_work[2],
+					image_out[0], image_out[1], image_out[2],
+					image_key[0]);
+				break;
+			case 4:
+				s_synth(image_in[0], image_in[1], image_in[2],
+					image_work[0], image_work[1], image_work[2],
+					image_out[0], image_out[1], image_out[2],
+					image_key[0]);
+				break;
+			}
 		case 91: image_copy(image_out, image_in);
 			//display(*image_in, X_SIZE, Y_SIZE, X_IN_POS, Y_IN_POS);
 			break;
@@ -283,7 +321,8 @@ void main()
 			break;
 		case 99: eflg = 0;
 			break;
-		default: printf("入力ェラー   ");
+		default:
+			printf("入力ェラー   ");
 			break;
 		}
 	}

@@ -11,7 +11,7 @@
 #define R 0
 #define G 1
 #define B 2
-
+#define BIAS    128    /*¡¡¥Ò¥¹¥È¥°¥é¥à»­Ïñ¤Î¥Ð¥¤¥¢¥¹‚Ž¡¡*/
 #define X_IN_POS	280
 #define Y_IN_POS	50
 #define X_OUT_POS	460
@@ -143,6 +143,17 @@ void rvmtx2(float a[X_SIZE][Y_SIZE], float b[Y_SIZE][X_SIZE],int xsize, int ysiz
 int fft2(float a_rl[Y_SIZE][X_SIZE], float a_im[Y_SIZE][X_SIZE], int inv);
 int fftimage(unsigned char image_in[Y_SIZE][X_SIZE], unsigned char image_out[Y_SIZE][X_SIZE]);
 int fft1(float a_rl[], float a_im[], int ex, int inv);
+void hist2_image(unsigned char  image_in1[Y_SIZE][X_SIZE], unsigned char image_in2[Y_SIZE][X_SIZE], unsigned char image_hist[Y_SIZE][X_SIZE]);
+void thresh_color(unsigned char image_in_r[Y_SIZE][X_SIZE], unsigned char image_in_g[Y_SIZE][X_SIZE], unsigned char image_in_b[Y_SIZE][X_SIZE], unsigned char image_out_r[Y_SIZE][X_SIZE], unsigned char image_out_g[Y_SIZE][X_SIZE], unsigned char image_out_b[Y_SIZE][X_SIZE], int thdrl, int thdrm, int thdgl, int thdgm, int thdbl, int thdbm);
+void hard_mask(unsigned char image_in_r[Y_SIZE][X_SIZE], unsigned char image_in_g[Y_SIZE][X_SIZE], unsigned char image_in_b[Y_SIZE][X_SIZE], unsigned char image_key[Y_SIZE][X_SIZE], int thresh);
+void synth(unsigned char image_in1_r[Y_SIZE][X_SIZE], unsigned char image_in1_g[Y_SIZE][X_SIZE], unsigned char image_in1_b[Y_SIZE][X_SIZE], unsigned char image_in2_r[Y_SIZE][X_SIZE], unsigned char image_in2_g[Y_SIZE][X_SIZE], unsigned char image_in2_b[Y_SIZE][X_SIZE], unsigned char image_out_r[Y_SIZE][X_SIZE], unsigned char image_out_g[Y_SIZE][X_SIZE], unsigned char image_out_b[Y_SIZE][X_SIZE], unsigned char image_key[Y_SIZE][X_SIZE]);
+void soft_mask(unsigned char image_in_r[Y_SIZE][X_SIZE], unsigned char image_in_g[Y_SIZE][X_SIZE], unsigned char image_in_b[Y_SIZE][X_SIZE], unsigned char image_key[Y_SIZE][X_SIZE], int thdh, int thdl);
+void s_synth(unsigned char image_in1_r[Y_SIZE][X_SIZE], unsigned char image_in1_g[Y_SIZE][X_SIZE], unsigned char image_in1_b[Y_SIZE][X_SIZE], unsigned char image_in2_r[Y_SIZE][X_SIZE], unsigned char image_in2_g[Y_SIZE][X_SIZE], unsigned char image_in2_b[Y_SIZE][X_SIZE], unsigned char image_out_r[Y_SIZE][X_SIZE], unsigned char image_out_g[Y_SIZE][X_SIZE], unsigned char image_out_b[Y_SIZE][X_SIZE], unsigned char image_key[Y_SIZE][X_SIZE]);
+
+
+
+
+
 
 //void piel_write(int x, int y, int pale_no);
 //void graph_clear1();

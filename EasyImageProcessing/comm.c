@@ -1441,8 +1441,7 @@ int fft2(float a_rl[Y_SIZE][X_SIZE], float a_im[Y_SIZE][X_SIZE], int inv)
 	xsize:    水平データ個数
 	ysize:    垂直データ個数
 -----------------------------------------------------------------------------*/
-void rvmtx1(float a[Y_SIZE][X_SIZE], float b[X_SIZE][Y_SIZE],
-	int xsize, int ysize)
+void rvmtx1(float a[Y_SIZE][X_SIZE], float b[X_SIZE][Y_SIZE],int xsize, int ysize)
 {
 	int  i, j;
 
@@ -1458,8 +1457,7 @@ void rvmtx1(float a[Y_SIZE][X_SIZE], float b[X_SIZE][Y_SIZE],
 	xsize:    水平データ個数
 	ysize:    垂直データ個数
 -----------------------------------------------------------------------------*/
-void rvmtx2(float a[X_SIZE][Y_SIZE], float b[Y_SIZE][X_SIZE],
-	int xsize, int ysize)
+void rvmtx2(float a[X_SIZE][Y_SIZE], float b[Y_SIZE][X_SIZE],int xsize, int ysize)
 {
 	int i, j;
 
@@ -1476,8 +1474,7 @@ void rvmtx2(float a[X_SIZE][Y_SIZE], float b[Y_SIZE][X_SIZE],
 	a, b:        通過帯域（a以上，b以下の周波数成分を通過する）
 				a=0，b=X_SIZE=Y_SIZEのとき，全帯域を通過
 -----------------------------------------------------------------------------*/
-int fftimage(unsigned char image_in[Y_SIZE][X_SIZE],
-	unsigned char image_out[Y_SIZE][X_SIZE])
+int fftimage(unsigned char image_in[Y_SIZE][X_SIZE],unsigned char image_out[Y_SIZE][X_SIZE])
 {
 	float* ar;        /* データ実数部（入出力兼用）*/
 	float* ai;        /* データ虚数部（入出力兼用）*/
@@ -1527,8 +1524,7 @@ int fftimage(unsigned char image_in[Y_SIZE][X_SIZE],
 	free(ai);
 	return 0;
 }
-int fftfilter(unsigned char image_in[Y_SIZE][X_SIZE],
-	unsigned char image_out[Y_SIZE][X_SIZE], int a, int b)
+int fftfilter(unsigned char image_in[Y_SIZE][X_SIZE],unsigned char image_out[Y_SIZE][X_SIZE], int a, int b)
 {
 	float* ar;   /*　データ実数部（入出力兼用）　*/
 	float* ai;   /*　データ虚数部（入出力兼用）　*/
@@ -1587,4 +1583,197 @@ int fftfilter(unsigned char image_in[Y_SIZE][X_SIZE],
 	free(ai);
 	free(ff);
 	return 0;
+}
+/*--- hist2_image --- ２次元ヒストグラムを求め画像化する ----------------------
+	image_in1:    画像データ　Ｘ軸用
+	image_in2:    画像データ　Ｙ軸用
+	image_hist:    ２次元ヒストグラム
+-----------------------------------------------------------------------------*/
+void hist2_image(unsigned char  image_in1[Y_SIZE][X_SIZE],unsigned char image_in2[Y_SIZE][X_SIZE],unsigned char image_hist[Y_SIZE][X_SIZE])
+{
+	int   i, j, kx, ky;
+	int   hx, hy, max, kk;
+
+	for (i = 0; i < Y_SIZE; i++)                      /* 初期化 */
+		for (j = 0; j < X_SIZE; j++)
+			image_hist[i][j] = 0;
+	max = 0;
+	ky = 256 / Y_SIZE;
+	kx = 256 / X_SIZE;
+	for (i = 0; i < Y_SIZE; i++) {
+		for (j = 0; j < X_SIZE; j++) {
+			hy = (HIGH - (int)image_in2[i][j]) / ky;
+			hx = ((int)image_in1[i][j]) / kx;
+			if (image_hist[hy][hx] < HIGH) image_hist[hy][hx]++;
+			if (max < image_hist[hy][hx]) max = image_hist[hy][hx];
+		}
+	}
+	for (i = 0; i < Y_SIZE; i++) {
+		for (j = 0; j < X_SIZE; j++) {
+			if (image_hist[i][j] != 0) {
+				kk = (long)image_hist[i][j] * HIGH / max + BIAS;
+				if (kk > HIGH)    image_hist[i][j] = HIGH;
+				else            image_hist[i][j] = kk;
+			}
+		}
+	}
+	for (i = 0; i < Y_SIZE; i++) image_hist[i][0] = HIGH;              /* Ｘ軸 */
+	for (j = 0; j < X_SIZE; j++) image_hist[Y_SIZE - 1][j] = HIGH;     /* Ｙ軸 */
+}
+/*--- thresh_color --- R,G,B値による閾値処理 ----------------------------------
+	image_in_r:        入力Ｒ画像
+	image_in_g:        入力Ｇ画像
+	image_in_b:        入力Ｂ画像
+	image_out_r:    出力Ｒ画像
+	image_out_g:    出力Ｇ画像
+	image_out_b:    出力Ｂ画像
+	thdrl, thdrm:    Ｒの閾値 (min,max)
+	thdgl, thdgm:    Ｇの閾値 (min,max)
+	thdbl, thdbm:    Ｂの閾値 (min,max)
+-----------------------------------------------------------------------------*/
+void thresh_color(unsigned char image_in_r[Y_SIZE][X_SIZE],unsigned char image_in_g[Y_SIZE][X_SIZE],unsigned char image_in_b[Y_SIZE][X_SIZE],unsigned char image_out_r[Y_SIZE][X_SIZE],unsigned char image_out_g[Y_SIZE][X_SIZE],unsigned char image_out_b[Y_SIZE][X_SIZE],int thdrl, int thdrm, int thdgl, int thdgm, int thdbl, int thdbm)
+{
+	int   i, j;
+
+	for (i = 0; i < Y_SIZE; i++) {
+		for (j = 0; j < X_SIZE; j++) {
+			image_out_r[i][j] = image_in_r[i][j];
+			image_out_g[i][j] = image_in_g[i][j];
+			image_out_b[i][j] = image_in_b[i][j];
+		}
+	}
+	for (i = 0; i < Y_SIZE; i++) {
+		for (j = 0; j < X_SIZE; j++) {
+			if (image_out_r[i][j] < thdrl)
+				image_out_r[i][j] = image_out_g[i][j] = image_out_b[i][j] = 0;
+			if (image_out_r[i][j] > thdrm)
+				image_out_r[i][j] = image_out_g[i][j] = image_out_b[i][j] = 0;
+			if (image_out_g[i][j] < thdgl)
+				image_out_r[i][j] = image_out_g[i][j] = image_out_b[i][j] = 0;
+			if (image_out_g[i][j] > thdgm)
+				image_out_r[i][j] = image_out_g[i][j] = image_out_b[i][j] = 0;
+			if (image_out_b[i][j] < thdbl)
+				image_out_r[i][j] = image_out_g[i][j] = image_out_b[i][j] = 0;
+			if (image_out_b[i][j] > thdbm)
+				image_out_r[i][j] = image_out_g[i][j] = image_out_b[i][j] = 0;
+		}
+	}
+}
+/*--- hard_mask --- 合成キー（ハードキー）の生成 ------------------------------
+	image_in_r:    入力Ｒ画像
+	image_in_g:    入力Ｇ画像
+	image_in_b:    入力Ｒ画像
+	image_key:    入力Ｂ画像
+	thresh:        閾値
+-----------------------------------------------------------------------------*/
+void hard_mask(unsigned char image_in_r[Y_SIZE][X_SIZE],unsigned char image_in_g[Y_SIZE][X_SIZE],unsigned char image_in_b[Y_SIZE][X_SIZE],unsigned char image_key[Y_SIZE][X_SIZE], int thresh)
+{
+	int   i, j, d;
+
+	for (i = 0; i < Y_SIZE; i++) {
+		for (j = 0; j < X_SIZE; j++) {
+			d = ((int)image_in_r[i][j] + (int)image_in_g[i][j]) / 2
+				- (int)image_in_b[i][j];
+			if (d >= thresh) image_key[i][j] = 255;
+			else             image_key[i][j] = 0;
+		}
+	}
+}
+/*--- synth --- クロマキーによる画面合成 --------------------------------------
+	image_in1_r:        入力前景Ｒ画像
+	image_in1_g:        入力前景Ｇ画像
+	image_in1_b:        入力前景Ｂ画像
+	image_in2_r:        入力背景Ｒ画像
+	image_in2_g:        入力背景Ｇ画像
+	image_in2_b:        入力背景Ｂ画像
+	image_out_r:        出力合成Ｒ画像
+	image_out_g:        出力合成Ｇ画像
+	image_out_b:        出力合成Ｂ画像
+	image_key:            合成用キー画像
+-----------------------------------------------------------------------------*/
+void synth(unsigned char image_in1_r[Y_SIZE][X_SIZE],unsigned char image_in1_g[Y_SIZE][X_SIZE],unsigned char image_in1_b[Y_SIZE][X_SIZE],unsigned char image_in2_r[Y_SIZE][X_SIZE],unsigned char image_in2_g[Y_SIZE][X_SIZE],unsigned char image_in2_b[Y_SIZE][X_SIZE],unsigned char image_out_r[Y_SIZE][X_SIZE],unsigned char image_out_g[Y_SIZE][X_SIZE],unsigned char image_out_b[Y_SIZE][X_SIZE],unsigned char image_key[Y_SIZE][X_SIZE])
+{
+	int   i, j;
+	int   rr1, gg1, bb1;
+	int   rr2, gg2, bb2;
+	long  kk;
+
+	for (i = 0; i < Y_SIZE; i++) {
+		for (j = 0; j < X_SIZE; j++) {
+			rr1 = (int)image_in1_r[i][j];
+			gg1 = (int)image_in1_g[i][j];
+			bb1 = (int)image_in1_b[i][j];
+			rr2 = (int)image_in2_r[i][j];
+			gg2 = (int)image_in2_g[i][j];
+			bb2 = (int)image_in2_b[i][j];
+			kk = (long)image_key[i][j];
+			image_out_r[i][j] = (unsigned char)((rr1 * kk + rr2 * (255 - kk)) / 255);
+			image_out_g[i][j] = (unsigned char)((gg1 * kk + gg2 * (255 - kk)) / 255);
+			image_out_b[i][j] = (unsigned char)((bb1 * kk + bb2 * (255 - kk)) / 255);
+		}
+	}
+}
+/*--- soft_mask --- 合成用キー（ソフトキー）の生成 ----------------------------
+	image_in_r:        入力Ｒ画像
+	image_in_g:        入力Ｇ画像
+	image_in_b:        入力Ｂ画像
+	image_key:        合成用キー画像
+	thdh, thdl:        閾値 (max,min)
+-----------------------------------------------------------------------------*/
+void soft_mask(unsigned char image_in_r[Y_SIZE][X_SIZE],unsigned char image_in_g[Y_SIZE][X_SIZE],unsigned char image_in_b[Y_SIZE][X_SIZE],unsigned char image_key[Y_SIZE][X_SIZE], int thdh, int thdl)
+{
+	int     i, j, d;
+	int     kk;
+
+	for (i = 0; i < Y_SIZE; i++) {
+		for (j = 0; j < X_SIZE; j++) {
+			d = ((int)image_in_r[i][j] + (int)image_in_g[i][j]) / 2
+				- (int)image_in_b[i][j];
+			kk = ((long)(d - thdl) * 255 / (thdh - thdl));
+			if (kk > 255)        image_key[i][j] = 255;
+			else if (kk < 0)     image_key[i][j] = 0;
+			else                image_key[i][j] = kk;
+		}
+	}
+}
+/*--- s_synth --- クロマキーによる画面合成（境界部色消し）---------------------
+	image_in1_r:        入力前景Ｒ画像
+	image_in1_g:        入力前景Ｇ画像
+	image_in1_b:        入力前景Ｂ画像
+	image_in2_r:        入力背景Ｒ画像
+	image_in2_g:        入力背景Ｇ画像
+	image_in2_b:        入力背景Ｂ画像
+	image_out_r:        出力合成Ｒ画像
+	image_out_g:        出力合成Ｇ画像
+	image_out_b:        出力合成Ｂ画像
+	image_key:            合成用キー画像
+-----------------------------------------------------------------------------*/
+void s_synth(unsigned char image_in1_r[Y_SIZE][X_SIZE],unsigned char image_in1_g[Y_SIZE][X_SIZE],unsigned char image_in1_b[Y_SIZE][X_SIZE],unsigned char image_in2_r[Y_SIZE][X_SIZE],unsigned char image_in2_g[Y_SIZE][X_SIZE],unsigned char image_in2_b[Y_SIZE][X_SIZE],unsigned char image_out_r[Y_SIZE][X_SIZE],unsigned char image_out_g[Y_SIZE][X_SIZE],unsigned char image_out_b[Y_SIZE][X_SIZE],unsigned char image_key[Y_SIZE][X_SIZE])
+{
+	int   i, j;
+	int   rr1, gg1, bb1;
+	int   rr2, gg2, bb2;
+	long  kk;
+
+	for (i = 0; i < Y_SIZE; i++) {
+		for (j = 0; j < X_SIZE; j++) {
+			rr1 = (int)image_in1_r[i][j];
+			gg1 = (int)image_in1_g[i][j];
+			bb1 = (int)image_in1_b[i][j];
+			rr2 = (int)image_in2_r[i][j];
+			gg2 = (int)image_in2_g[i][j];
+			bb2 = (int)image_in2_b[i][j];
+			kk = (long)image_key[i][j];
+			if (kk == 255 || kk == 0) {       /* 前景または背景 */
+				image_out_r[i][j] = (unsigned char)((rr1 * kk + rr2 * (255 - kk)) / 255);
+				image_out_g[i][j] = (unsigned char)((gg1 * kk + gg2 * (255 - kk)) / 255);
+				image_out_b[i][j] = (unsigned char)((bb1 * kk + bb2 * (255 - kk)) / 255);
+			}
+			else {                              /* 境界部 */
+				image_out_r[i][j] = (unsigned char)((gg1 * kk + rr2 * (255 - kk)) / 255);
+				image_out_g[i][j] = (unsigned char)((gg1 * kk + gg2 * (255 - kk)) / 255);
+				image_out_b[i][j] = (unsigned char)((gg1 * kk + bb2 * (255 - kk)) / 255);
+			}
+		}
+	}
 }
